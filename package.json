@@ -1,0 +1,12 @@
+{
+  "name": "flowclip",
+  "version": "1.0.0",
+  "description": "FlowClip makes saving information as effortless as discovering it.",
+  "license": "ISC",
+  "author": "Uttkarsh Singh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
