@@ -1,0 +1,2 @@
+// Shared utilities
+module.exports = {};

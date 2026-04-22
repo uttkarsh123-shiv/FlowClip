@@ -1,1 +1,8 @@
-FlowClip is an automated copy capture moment at discovery without breaking the flow or focus.
+# Project Root
+
+Monorepo containing:
+
+- `apps/web` — Next.js app
+- `apps/extension` — Chrome extension
+- `convex/` — Convex backend
+- `shared/` — Shared types and utilities

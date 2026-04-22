@@ -1,12 +1,15 @@
 {
-  "name": "flowclip",
+  "name": "project-root",
   "version": "1.0.0",
-  "description": "FlowClip makes saving information as effortless as discovering it.",
-  "license": "ISC",
-  "author": "Uttkarsh Singh",
-  "type": "module",
-  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/extension",
+    "convex",
+    "shared"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:convex": "npm run dev --workspace=convex"
   }
 }

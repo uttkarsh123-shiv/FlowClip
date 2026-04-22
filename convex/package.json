@@ -1,0 +1,11 @@
+{
+  "name": "convex-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev"
+  },
+  "dependencies": {
+    "convex": "^1.36.0"
+  }
+}
