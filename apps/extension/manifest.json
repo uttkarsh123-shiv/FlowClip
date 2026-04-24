@@ -4,16 +4,17 @@
   "version": "1.0.0",
   "description": "Smart clipboard manager",
   "permissions": ["clipboardRead", "storage", "activeTab"],
+  "host_permissions": ["https://fantastic-condor-84.eu-west-1.convex.site/*"],
   "background": {
-    "service_worker": "background/index.js"
+    "service_worker": "src/background/index.js"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/index.js"]
+      "js": ["src/content/index.js"]
     }
   ],
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "src/popup/popup.html"
   }
 }

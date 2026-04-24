@@ -8,8 +8,11 @@
     "convex",
     "shared"
   ],
+  "dependencies": {
+    "convex": "^1.36.0"
+  },
   "scripts": {
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev:convex": "npm run dev --workspace=convex"
+    "dev:convex": "convex dev"
   }
 }
