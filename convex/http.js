@@ -14,7 +14,7 @@ http.route({
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
       },
     });
   }),
@@ -24,8 +24,9 @@ http.route({
   path: "/clips",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    const { content } = await req.json();
-    await ctx.runMutation(api.items.createItem, { content });
+    const { content, url } = await req.json();
+    const type = url && content === url ? "link" : "text";
+    await ctx.runMutation(api.items.createItem, { type, content, url });
     return new Response(JSON.stringify({ ok: true }), {
       headers: {
         "Content-Type": "application/json",
