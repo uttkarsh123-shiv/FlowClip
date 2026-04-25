@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>FlowClip</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        width: 340px;
+        min-height: 400px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0f0f0f;
+        color: #f0f0f0;
+      }
+      header {
+        padding: 14px 16px;
+        border-bottom: 1px solid #222;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
+      header span { font-size: 11px; color: #666; }
+      #search {
+        width: 100%;
+        padding: 10px 16px;
+        background: #1a1a1a;
+        border: none;
+        border-bottom: 1px solid #222;
+        color: #f0f0f0;
+        font-size: 13px;
+        outline: none;
+      }
+      #search::placeholder { color: #555; }
+      #clips { overflow-y: auto; max-height: 320px; }
+      .clip {
+        padding: 10px 16px;
+        border-bottom: 1px solid #1a1a1a;
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background 0.15s;
+      }
+      .clip:hover { background: #1e1e1e; }
+      .clip .time { font-size: 10px; color: #555; margin-top: 3px; }
+      #empty {
+        padding: 40px 16px;
+        text-align: center;
+        color: #444;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>FlowClip</h1>
+      <span id="count">0 clips</span>
+    </header>
+    <input id="search" type="text" placeholder="Search clips..." />
+    <div id="clips"><div id="empty">No clips yet. Start copying.</div></div>
+    <script src="popup.js"></script>
+  </body>
+</html>

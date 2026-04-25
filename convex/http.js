@@ -35,4 +35,18 @@ http.route({
   }),
 });
 
+http.route({
+  path: "/clips",
+  method: "GET",
+  handler: httpAction(async (ctx) => {
+    const items = await ctx.runQuery(api.items.getItems);
+    return new Response(JSON.stringify(items), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }),
+});
+
 export default http;
