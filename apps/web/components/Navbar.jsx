@@ -1,4 +1,4 @@
-export default function Navbar() {
+export default function Navbar({ onMenuClick }) {
 
   return (
     <nav style={{
@@ -15,7 +15,7 @@ export default function Navbar() {
     }}>
 
       {/* Hamburger */}
-      <button style={iconBtn} aria-label="Menu">
+      <button style={iconBtn} aria-label="Menu" onClick={onMenuClick}>
         <HamburgerIcon />
       </button>
 
