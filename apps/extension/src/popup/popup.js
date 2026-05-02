@@ -23,15 +23,13 @@ function renderClips(clips) {
   }
 
   container.innerHTML = clips
-    .slice()
-    .reverse()
-    .map((clip) => {
+    .map((clip, i) => {
       const time = new Date(clip.createdAt).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       });
       return `
-        <div class="clip" title="${escape(clip.content)}" data-content="${escape(clip.content)}">
+        <div class="clip" data-index="${i}">
           ${clip.content}
           <div class="time">${time}</div>
         </div>`;
@@ -41,7 +39,8 @@ function renderClips(clips) {
   // Click to copy
   container.querySelectorAll(".clip").forEach((el) => {
     el.addEventListener("click", () => {
-      navigator.clipboard.writeText(unescape(el.dataset.content));
+      const clip = clips[+el.dataset.index];
+      navigator.clipboard.writeText(clip.content);
     });
   });
 }

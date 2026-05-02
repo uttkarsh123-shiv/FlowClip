@@ -3,8 +3,11 @@
   "name": "FlowClip",
   "version": "1.0.0",
   "description": "Smart clipboard manager",
-  "permissions": ["clipboardRead", "storage", "activeTab"],
-  "host_permissions": ["https://fantastic-condor-84.eu-west-1.convex.site/*"],
+  "permissions": ["clipboardRead", "storage", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://fantastic-condor-84.eu-west-1.convex.site/*",
+    "https://leetcode.com/*"
+  ],
   "background": {
     "service_worker": "src/background/index.js"
   },

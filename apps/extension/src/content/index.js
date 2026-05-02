@@ -1,23 +1,53 @@
-// Listen for copy events
+// Block by exact hostname, not substring — avoids false matches like "bank" in unrelated URLs
+const BLOCKED_HOSTNAMES = [
+  "chase.com", "wellsfargo.com", "bankofamerica.com", "citibank.com",
+  "barclays.co.uk", "hsbc.com", "lloydsbank.com", "santander.com",
+  "capitalone.com", "usbank.com", "tdbank.com",
+  "paypal.com", "stripe.com", "square.com", "venmo.com", "cash.app",
+  "zelle.com", "wise.com", "revolut.com", "skrill.com",
+  "coinbase.com", "binance.com", "kraken.com", "blockchain.com",
+];
+
+function isBlockedDomain(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, "");
+    return BLOCKED_HOSTNAMES.some((h) => hostname === h || hostname.endsWith("." + h));
+  } catch {
+    return false;
+  }
+}
+
+let lastCaptured = null;
+
+function handleCapture(text) {
+  if (!text || text.length <= 5) return;
+  if (isBlockedDomain(window.location.href)) return;
+  if (text === lastCaptured) return; // dedup between copy event + keydown fallback
+  lastCaptured = text;
+  showToast(text, window.location.href);
+}
+
+// Standard copy event — works on Google, most normal sites
 document.addEventListener("copy", () => {
-  const text = window.getSelection().toString();
-  if (text.length > 5) {
-    chrome.runtime.sendMessage({
-      type: "COPY_DETECTED",
-      payload: { content: text, url: window.location.href }
-    });
+  handleCapture(window.getSelection().toString());
+});
+
+// Fallback for Monaco-based editors (LeetCode, CodeSandbox, etc.)
+// Monaco doesn't fire the native copy DOM event
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+    setTimeout(async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        handleCapture(text);
+      } catch {
+        // clipboard-read permission not granted — silently skip
+      }
+    }, 100);
   }
 });
 
-// Listen for confirmation request from background
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "SHOW_CONFIRMATION") {
-    showToast(message.payload.content);
-  }
-});
-
-function showToast(text) {
-  // Remove existing toast
+function showToast(text, sourceUrl) {
   const existing = document.getElementById("flowclip-toast");
   if (existing) existing.remove();
 
@@ -61,19 +91,20 @@ function showToast(text) {
   `;
 
   document.body.appendChild(toast);
-
-  // Auto-dismiss after 6 seconds
   const timer = setTimeout(() => toast.remove(), 6000);
 
   document.getElementById("flowclip-save").addEventListener("click", () => {
     clearTimeout(timer);
     toast.remove();
-    chrome.runtime.sendMessage({ type: "SAVE_CONFIRMED" });
+    chrome.runtime.sendMessage({
+      type: "SAVE_CONFIRMED",
+      payload: { content: text, url: sourceUrl }
+    });
   });
 
   document.getElementById("flowclip-ignore").addEventListener("click", () => {
     clearTimeout(timer);
     toast.remove();
-    chrome.runtime.sendMessage({ type: "IGNORE_CONFIRMED" });
+    lastCaptured = null; // allow re-capture of same text after ignore
   });
 }
