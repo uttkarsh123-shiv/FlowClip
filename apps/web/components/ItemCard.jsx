@@ -9,9 +9,13 @@ const typeColor = {
   image: { bg: "#fff4e6", color: "#e8590c" },
 };
 
-export default function ItemCard() {
+export default function ItemCard({activeType}) {
   const items = useQuery(api.items.getItems, {});
 
+  const filteredItems = 
+  activeType === "all" 
+  ? items 
+  : items?.filter((item) => item.type === activeType);
   return (
     <div style={{
       padding: "24px 28px",
@@ -37,7 +41,7 @@ export default function ItemCard() {
         columns: "3 320px",
         columnGap: 16,
       }}>
-        {items?.map((item) => {
+        {filteredItems?.map((item) => {
           const tag = typeColor[item.type] ?? { bg: "#f5f5f5", color: "#666" };
           return (
             <div key={item._id} style={{

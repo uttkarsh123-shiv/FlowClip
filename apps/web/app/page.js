@@ -14,7 +14,7 @@ export default function Home() {
       <div style={{ display: "flex", flex: 1 }}>
         <Sidebar active={activeType} onChange={setActiveType} isOpen={sidebarOpen} />
         <main style={{ flex: 1, background: "#fafafa" }}>
-          <ItemCard />
+          <ItemCard activeType = {activeType}/>
         </main>
       </div>
     </div>
