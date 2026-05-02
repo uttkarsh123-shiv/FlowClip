@@ -2,84 +2,109 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
-const typeIcon = { text: "📝", link: "🔗", image: "🖼️" };
-
-const s = {
-  page: {
-    minHeight: "100vh",
-    background: "#0f0f0f",
-    color: "#f0f0f0",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    padding: "32px 16px",
-  },
-  inner: { maxWidth: 640, margin: "0 auto" },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  title: { fontSize: 20, fontWeight: 600, letterSpacing: "-0.3px" },
-  count: { fontSize: 12, color: "#555" },
-  empty: { fontSize: 13, color: "#444", marginTop: 40, textAlign: "center" },
-  list: { display: "flex", flexDirection: "column", gap: 12 },
-  card: {
-    background: "#1a1a1a",
-    border: "1px solid #2a2a2a",
-    borderRadius: 12,
-    padding: "14px 16px",
-    cursor: "default",
-  },
-  cardRow: { display: "flex", gap: 12, alignItems: "flex-start" },
-  icon: { fontSize: 16, marginTop: 1, flexShrink: 0 },
-  content: { fontSize: 13, color: "#e0e0e0", lineHeight: 1.6, wordBreak: "break-word" },
-  sourceUrl: {
-    fontSize: 11,
-    color: "#555",
-    marginTop: 4,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    display: "block",
-    maxWidth: 400,
-  },
-  time: { fontSize: 11, color: "#444", marginTop: 6 },
+const typeLabel = { text: "Text", link: "Link", image: "Image" };
+const typeColor = {
+  text:  { bg: "#f0f4ff", color: "#3b5bdb" },
+  link:  { bg: "#f0fdf4", color: "#2f9e44" },
+  image: { bg: "#fff4e6", color: "#e8590c" },
 };
 
 export default function ItemCard() {
   const items = useQuery(api.items.getItems, {});
 
   return (
-    <div style={s.page}>
-      <div style={s.inner}>
-        <div style={s.header}>
-          <span style={s.title}>FlowClip</span>
-          <span style={s.count}>{items?.length ?? 0} items</span>
-        </div>
+    <div style={{
+      padding: "24px 28px",
+      background: "#fafafa",
+      minHeight: "calc(100vh - 64px)",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    }}>
 
-        {!items && <p style={s.empty}>Loading...</p>}
-        {items?.length === 0 && <p style={s.empty}>No clips yet. Start copying.</p>}
+      {/* Loading / empty states */}
+      {!items && (
+        <p style={{ color: "#aaa", fontSize: 13, marginTop: 40, textAlign: "center" }}>
+          Loading...
+        </p>
+      )}
+      {items?.length === 0 && (
+        <p style={{ color: "#aaa", fontSize: 13, marginTop: 40, textAlign: "center" }}>
+          No clips yet. Start copying.
+        </p>
+      )}
 
-        <div style={s.list}>
-          {items?.map((item) => (
-            <div key={item._id} style={s.card}>
-              <div style={s.cardRow}>
-                <span style={s.icon}>{typeIcon[item.type] ?? "📋"}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={s.content}>{item.content}</p>
-                  {item.url && (
-                    <a href={item.url} target="_blank" rel="noreferrer" style={s.sourceUrl}>
-                      {item.url}
-                    </a>
-                  )}
-                  <p style={s.time}>
-                    {new Date(item.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              </div>
+      {/* Masonry-style grid */}
+      <div style={{
+        columns: "3 320px",
+        columnGap: 16,
+      }}>
+        {items?.map((item) => {
+          const tag = typeColor[item.type] ?? { bg: "#f5f5f5", color: "#666" };
+          return (
+            <div key={item._id} style={{
+              breakInside: "avoid",
+              marginBottom: 16,
+              background: "#fff",
+              border: "1px solid #e8e8e8",
+              borderRadius: 10,
+              padding: "18px 20px",
+              cursor: "default",
+            }}>
+              {/* Type badge */}
+              <span style={{
+                display: "inline-block",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.5px",
+                textTransform: "uppercase",
+                background: tag.bg,
+                color: tag.color,
+                borderRadius: 4,
+                padding: "3px 9px",
+                marginBottom: 12,
+              }}>
+                {typeLabel[item.type] ?? "Clip"}
+              </span>
+
+              {/* Content */}
+              <p style={{
+                fontSize: 15,
+                color: "#1a1a1a",
+                lineHeight: 1.7,
+                wordBreak: "break-word",
+                margin: 0,
+              }}>
+                {item.content}
+              </p>
+
+              {/* Source URL */}
+              {item.url && (
+                <a href={item.url} target="_blank" rel="noreferrer" style={{
+                  display: "block",
+                  marginTop: 12,
+                  fontSize: 12,
+                  color: "#888",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  textDecoration: "none",
+                }}>
+                  🔗 {item.url}
+                </a>
+              )}
+
+              {/* Timestamp */}
+              <p style={{
+                marginTop: 12,
+                fontSize: 12,
+                color: "#bbb",
+                borderTop: "1px solid #f0f0f0",
+                paddingTop: 10,
+              }}>
+                {new Date(item.createdAt).toLocaleString()}
+              </p>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
