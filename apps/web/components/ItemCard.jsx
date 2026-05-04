@@ -1,6 +1,6 @@
 "use client";
 import { useQuery, useMutation } from "convex/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../../../convex/_generated/api";
 // import Kebab from "./KebabIcon.jsx"
 import KebabIcon from "./KebabIcon.jsx";
@@ -17,6 +17,18 @@ export default function ItemCard({activeType}) {
   const items = useQuery(api.items.getItems, {});
   const deleteItem = useMutation(api.items.deleteItem);
 
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.kebab-container')) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const filteredItems = 
   activeType === "all" 
   ? items 
@@ -30,7 +42,7 @@ export default function ItemCard({activeType}) {
     <div style={{
       padding: "24px 28px",
       background: "#fafafa",
-      minHeight: "calc(100vh - 64px)",
+      minHeight: "120vh",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
 
@@ -112,7 +124,7 @@ export default function ItemCard({activeType}) {
                   {new Date(item.createdAt).toLocaleString()}
                 </p>
                 
-                <div style={{ position: "relative" }}>
+                <div className="kebab-container" style={{ position: "relative" }}>
                   <button 
                     onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
                     style={{ background: "none", border: "none", padding: 4, cursor: "pointer" }}
@@ -121,7 +133,7 @@ export default function ItemCard({activeType}) {
                   </button>
 
                   {openMenuId === item._id && (
-                    <div style={{ position: "absolute", right: 0, top: "100%", background: "#fff", border: "1px solid #e0e0e0", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 100, marginTop: 4 }}>
+                    <div style={{ position: "absolute", right: 0, top: "100%", background: "#fff", border: "1px solid #e0e0e0", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 100, marginBottom: 4 }}>
                       <button 
                         onClick={() => handleDelete(item._id)}
                         style={{ display: "block", width: "100%", padding: "10px 16px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 14, color: "#dc2626" }}
