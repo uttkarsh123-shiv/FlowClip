@@ -1,3 +1,12 @@
+console.log("FlowClip content script loaded!"); // Add this at the very top
+
+// Track modifier keys manually
+let ctrlPressed = false;
+let shiftPressed = false;
+
+// Track double S press for screenshot
+let lastSPress = 0;
+
 // Block by exact hostname, not substring — avoids false matches like "bank" in unrelated URLs
 const BLOCKED_HOSTNAMES = [
   "chase.com", "wellsfargo.com", "bankofamerica.com", "citibank.com",
@@ -19,6 +28,119 @@ function isBlockedDomain(url) {
 
 let lastCaptured = null;
 
+function captureScreenshot() {
+  console.log("captureScreenshot called"); // Debug log
+  if (isBlockedDomain(window.location.href)) {
+    console.log("Blocked domain, skipping screenshot"); // Debug log
+    return;
+  }
+  
+  console.log("Sending CAPTURE_SCREENSHOT message"); // Debug log
+  // Send message to background script to capture screenshot
+  chrome.runtime.sendMessage({
+    type: "CAPTURE_SCREENSHOT",
+    payload: { url: window.location.href }
+  });
+}
+
+function showScreenshotToast(imageData, sourceUrl) {
+  const existing = document.getElementById("flowclip-screenshot-toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.id = "flowclip-screenshot-toast";
+  toast.innerHTML = `
+    <div style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1a1a1a;
+      color: #f0f0f0;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: -apple-system, sans-serif;
+      font-size: 13px;
+      z-index: 999999;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      max-width: 400px;
+    ">
+      <div style="margin-bottom:12px; color:#aaa; font-size:11px;">📸 FlowClip Screenshot</div>
+      <img src="${imageData}" style="
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border: 1px solid #333;
+      " />
+      <div style="display:flex; gap:8px;">
+        <button id="flowclip-screenshot-save" style="
+          flex:1; padding:8px; background:#2563eb; color:#fff;
+          border:none; border-radius:6px; cursor:pointer; font-size:12px;
+        ">✔ Save Screenshot</button>
+        <button id="flowclip-screenshot-ignore" style="
+          flex:1; padding:8px; background:#2a2a2a; color:#aaa;
+          border:1px solid #333; border-radius:6px; cursor:pointer; font-size:12px;
+        ">✕ Ignore</button>
+      </div>
+    </div>
+  `;
+
+  // Add backdrop
+  const backdrop = document.createElement("div");
+  backdrop.id = "flowclip-backdrop";
+  backdrop.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999998;
+  `;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(toast);
+
+  const cleanup = () => {
+    toast.remove();
+    backdrop.remove();
+  };
+
+  const timer = setTimeout(cleanup, 10000); // Auto-close after 10 seconds
+
+  document.getElementById("flowclip-screenshot-save").addEventListener("click", () => {
+    clearTimeout(timer);
+    cleanup();
+    chrome.runtime.sendMessage({
+      type: "SAVE_SCREENSHOT_CONFIRMED",
+      payload: { imageData, url: sourceUrl }
+    });
+  });
+
+  document.getElementById("flowclip-screenshot-ignore").addEventListener("click", () => {
+    clearTimeout(timer);
+    cleanup();
+  });
+
+  // Close on backdrop click
+  backdrop.addEventListener("click", () => {
+    clearTimeout(timer);
+    cleanup();
+  });
+}
+
+// Listen for messages from background script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Content script received message:", message.type); // Debug log
+  if (message.type === "SHOW_SCREENSHOT_CONFIRMATION") {
+    console.log("Showing screenshot confirmation modal"); // Debug log
+    showScreenshotToast(message.payload.imageData, message.payload.url);
+  }
+});
+
 function handleCapture(text) {
   if (!text || text.length <= 5) return;
   if (isBlockedDomain(window.location.href)) return;
@@ -35,6 +157,26 @@ document.addEventListener("copy", () => {
 // Fallback for Monaco-based editors (LeetCode, CodeSandbox, etc.)
 // Monaco doesn't fire the native copy DOM event
 document.addEventListener("keydown", (e) => {
+  // Only log non-modifier keys to avoid spam
+  if (e.key !== "Control" && e.key !== "Meta" && e.key !== "Shift") {
+    console.log("Key pressed:", e.key);
+  }
+  
+  // Screenshot shortcut: Double S press within 2 seconds
+  if (e.key === "s" || e.key === "S") {
+    const now = Date.now();
+    if (now - lastSPress < 2000) {
+      console.log("Double S detected - taking screenshot!");
+      captureScreenshot();
+      lastSPress = 0; // Reset to prevent triple-press
+    } else {
+      lastSPress = now;
+      console.log("First S press detected, waiting for second...");
+    }
+    return;
+  }
+
+  // Copy detection for Monaco editors
   if ((e.ctrlKey || e.metaKey) && e.key === "c") {
     setTimeout(async () => {
       try {

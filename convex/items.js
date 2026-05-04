@@ -6,6 +6,7 @@ export const createItem = mutation({
     type: v.union(v.literal("text"), v.literal("link"), v.literal("image")),
     content: v.string(),
     url: v.optional(v.string()),
+    imageData: v.optional(v.string()),
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

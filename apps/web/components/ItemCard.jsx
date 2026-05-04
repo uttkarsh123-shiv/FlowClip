@@ -92,15 +92,29 @@ export default function ItemCard({activeType}) {
               </span>
 
               {/* Content */}
-              <p style={{
-                fontSize: 15,
-                color: "#1a1a1a",
-                lineHeight: 1.7,
-                wordBreak: "break-word",
-                margin: 0,
-              }}>
-                {item.content}
-              </p>
+              {item.type === "image" && item.imageData ? (
+                <img 
+                  src={item.imageData} 
+                  alt="Screenshot"
+                  style={{
+                    width: "100%",
+                    borderRadius: 6,
+                    marginBottom: 8,
+                    maxHeight: 200,
+                    objectFit: "cover"
+                  }}
+                />
+              ) : (
+                <p style={{
+                  fontSize: 15,
+                  color: "#1a1a1a",
+                  lineHeight: 1.7,
+                  wordBreak: "break-word",
+                  margin: 0,
+                }}>
+                  {item.content}
+                </p>
+              )}
 
               {/* Source URL */}
               {item.url && (
