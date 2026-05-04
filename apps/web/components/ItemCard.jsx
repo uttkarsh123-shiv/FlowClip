@@ -1,6 +1,9 @@
 "use client";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
+import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
+// import Kebab from "./KebabIcon.jsx"
+import KebabIcon from "./KebabIcon.jsx";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeColor = {
@@ -10,12 +13,19 @@ const typeColor = {
 };
 
 export default function ItemCard({activeType}) {
+  const [openMenuId, setOpenMenuId] = useState(null);
   const items = useQuery(api.items.getItems, {});
+  const deleteItem = useMutation(api.items.deleteItem);
 
   const filteredItems = 
   activeType === "all" 
   ? items 
   : items?.filter((item) => item.type === activeType);
+
+  const handleDelete = (id) => {
+    deleteItem({ id });
+    setOpenMenuId(null);
+  }
   return (
     <div style={{
       padding: "24px 28px",
@@ -97,15 +107,31 @@ export default function ItemCard({activeType}) {
               )}
 
               {/* Timestamp */}
-              <p style={{
-                marginTop: 12,
-                fontSize: 12,
-                color: "#bbb",
-                borderTop: "1px solid #f0f0f0",
-                paddingTop: 10,
-              }}>
-                {new Date(item.createdAt).toLocaleString()}
-              </p>
+               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                <p style={{ fontSize: 12, color: "#bbb", borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
+                  {new Date(item.createdAt).toLocaleString()}
+                </p>
+                
+                <div style={{ position: "relative" }}>
+                  <button 
+                    onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
+                    style={{ background: "none", border: "none", padding: 4, cursor: "pointer" }}
+                  >
+                    <KebabIcon />
+                  </button>
+
+                  {openMenuId === item._id && (
+                    <div style={{ position: "absolute", right: 0, top: "100%", background: "#fff", border: "1px solid #e0e0e0", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 100, marginTop: 4 }}>
+                      <button 
+                        onClick={() => handleDelete(item._id)}
+                        style={{ display: "block", width: "100%", padding: "10px 16px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 14, color: "#dc2626" }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           );
         })}
