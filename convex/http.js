@@ -24,9 +24,23 @@ http.route({
   path: "/clips",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    const { content, url } = await req.json();
-    const type = url && content === url ? "link" : "text";
-    await ctx.runMutation(api.items.createItem, { type, content, url });
+    const body = await req.json();
+    
+    // Handle screenshot data
+    if (body.type === "image" && body.imageData) {
+      await ctx.runMutation(api.items.createItem, {
+        type: "image",
+        content: body.content || "Screenshot captured",
+        url: body.url,
+        imageData: body.imageData
+      });
+    } else {
+      // Handle regular text/link data
+      const { content, url } = body;
+      const type = url && content === url ? "link" : "text";
+      await ctx.runMutation(api.items.createItem, { type, content, url });
+    }
+    
     return new Response(JSON.stringify({ ok: true }), {
       headers: {
         "Content-Type": "application/json",
