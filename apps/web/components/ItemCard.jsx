@@ -2,8 +2,8 @@
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { api } from "../../../convex/_generated/api";
-// import Kebab from "./KebabIcon.jsx"
 import KebabIcon from "./KebabIcon.jsx";
+import ImageModal from "./ImageModal.jsx";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeColor = {
@@ -14,6 +14,7 @@ const typeColor = {
 
 export default function ItemCard({activeType}) {
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const items = useQuery(api.items.getItems, {});
   const deleteItem = useMutation(api.items.deleteItem);
 
@@ -96,12 +97,14 @@ export default function ItemCard({activeType}) {
                 <img 
                   src={item.imageData} 
                   alt="Screenshot"
+                  onClick={() => setSelectedImage(item.imageData)}
                   style={{
                     width: "100%",
                     borderRadius: 6,
                     marginBottom: 8,
                     maxHeight: 200,
-                    objectFit: "cover"
+                    objectFit: "cover",
+                    cursor: "pointer",
                   }}
                 />
               ) : (
@@ -162,6 +165,7 @@ export default function ItemCard({activeType}) {
           );
         })}
       </div>
+      <ImageModal imageData={selectedImage} onClose={() => setSelectedImage(null)} />
     </div>
   );
 }
