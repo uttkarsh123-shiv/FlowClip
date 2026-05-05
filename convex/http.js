@@ -37,7 +37,8 @@ http.route({
     } else {
       // Handle regular text/link data
       const { content, url } = body;
-      const type = url && content === url ? "link" : "text";
+      const isUrl = /^https?:\/\//i.test(content?.trim());
+      const type = isUrl ? "link" : "text";
       await ctx.runMutation(api.items.createItem, { type, content, url });
     }
     

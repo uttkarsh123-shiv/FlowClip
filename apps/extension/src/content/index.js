@@ -36,11 +36,14 @@ function captureScreenshot() {
   }
   
   console.log("Sending CAPTURE_SCREENSHOT message"); // Debug log
-  // Send message to background script to capture screenshot
-  chrome.runtime.sendMessage({
-    type: "CAPTURE_SCREENSHOT",
-    payload: { url: window.location.href }
-  });
+  try {
+    chrome.runtime.sendMessage({
+      type: "CAPTURE_SCREENSHOT",
+      payload: { url: window.location.href }
+    });
+  } catch (e) {
+    console.error("Extension context lost:", e);
+  }
 }
 
 function showScreenshotToast(imageData, sourceUrl) {
@@ -114,10 +117,14 @@ function showScreenshotToast(imageData, sourceUrl) {
   document.getElementById("flowclip-screenshot-save").addEventListener("click", () => {
     clearTimeout(timer);
     cleanup();
-    chrome.runtime.sendMessage({
-      type: "SAVE_SCREENSHOT_CONFIRMED",
-      payload: { imageData, url: sourceUrl }
-    });
+    try {
+      chrome.runtime.sendMessage({
+        type: "SAVE_SCREENSHOT_CONFIRMED",
+        payload: { imageData, url: sourceUrl }
+      });
+    } catch (e) {
+      console.error("Extension context lost:", e);
+    }
   });
 
   document.getElementById("flowclip-screenshot-ignore").addEventListener("click", () => {
@@ -146,6 +153,17 @@ function handleCapture(text) {
   if (isBlockedDomain(window.location.href)) return;
   if (text === lastCaptured) return; // dedup between copy event + keydown fallback
   lastCaptured = text;
+  
+  // Notify background script
+  try {
+    chrome.runtime.sendMessage({
+      type: "COPY_DETECTED",
+      payload: { content: text, url: window.location.href }
+    });
+  } catch (e) {
+    console.error("Extension context lost:", e);
+  }
+  
   showToast(text, window.location.href);
 }
 
@@ -163,6 +181,11 @@ document.addEventListener("keydown", (e) => {
   }
   
   // Screenshot shortcut: Double S press within 2 seconds
+  // Ignore if user is typing in an input/textarea
+  const tag = document.activeElement?.tagName;
+  const isEditable = document.activeElement?.isContentEditable;
+  if (tag === "INPUT" || tag === "TEXTAREA" || isEditable) return;
+
   if (e.key === "s" || e.key === "S") {
     const now = Date.now();
     if (now - lastSPress < 2000) {
@@ -238,10 +261,14 @@ function showToast(text, sourceUrl) {
   document.getElementById("flowclip-save").addEventListener("click", () => {
     clearTimeout(timer);
     toast.remove();
-    chrome.runtime.sendMessage({
-      type: "SAVE_CONFIRMED",
-      payload: { content: text, url: sourceUrl }
-    });
+    try {
+      chrome.runtime.sendMessage({
+        type: "SAVE_CONFIRMED",
+        payload: { content: text, url: sourceUrl }
+      });
+    } catch (e) {
+      console.error("Extension context lost:", e);
+    }
   });
 
   document.getElementById("flowclip-ignore").addEventListener("click", () => {
