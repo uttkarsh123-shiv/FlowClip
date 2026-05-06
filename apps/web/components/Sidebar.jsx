@@ -11,10 +11,11 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
   if (!isOpen) return null;
   return (
     <aside style={{
-      width: 240,
+      width: 220,
       minHeight: "calc(100vh - 64px)",
       background: "#fff",
-      padding: "8px 0",
+      borderRight: "1px solid #f0f0f0",
+      padding: "12px 12px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
       {NAV_ITEMS.map((item) => {
@@ -27,21 +28,22 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
               width: "100%",
               display: "flex",
               alignItems: "center",
-              gap: 16,
-              padding: "12px 16px 12px 24px",
-              background: isActive ? "#fef9e7" : "transparent",
+              gap: 12,
+              padding: "9px 14px",
+              background: isActive ? "#eef2ff" : "transparent",
               border: "none",
-              borderRadius: isActive ? "0 24px 24px 0" : 0,
+              borderRadius: 8,
               cursor: "pointer",
               textAlign: "left",
-              color: isActive ? "#1a1a1a" : "#444",
+              color: isActive ? "#4f46e5" : "#555",
               fontWeight: isActive ? 600 : 400,
-              fontSize: 14,
-              marginRight: 16,
-              transition: "background 0.15s",
+              fontSize: 13.5,
+              marginBottom: 2,
+              transition: "background 0.15s, color 0.15s",
+              letterSpacing: "-0.1px",
             }}
           >
-            <span style={{ color: isActive ? "#1a1a1a" : "#666", flexShrink: 0 }}>
+            <span style={{ color: isActive ? "#4f46e5" : "#999", flexShrink: 0 }}>
               {item.icon}
             </span>
             {item.label}

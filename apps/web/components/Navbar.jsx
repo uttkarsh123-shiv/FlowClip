@@ -1,4 +1,22 @@
+"use client";
+import { useState, useEffect, useRef } from "react";
+
 export default function Navbar({ onMenuClick, onLogout, user }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const initial = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
 
   return (
     <nav style={{
@@ -7,11 +25,11 @@ export default function Navbar({ onMenuClick, onLogout, user }) {
       display: "flex",
       alignItems: "center",
       gap: 8,
-      padding: "6px 16px",
+      padding: "0 16px",
       background: "#ffffff",
-      borderBottom: "1px solid #e0e0e0",
+      borderBottom: "1px solid #e5e7eb",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      height: 64,
+      height: 56,
     }}>
 
       {/* Hamburger */}
@@ -20,36 +38,84 @@ export default function Navbar({ onMenuClick, onLogout, user }) {
       </button>
 
       {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 140 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{
-          width: 32, height: 32, borderRadius: 6,
+          width: 30, height: 30, borderRadius: 7,
           background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <span style={{ fontSize: 16 }}>📋</span>
+          <span style={{ fontSize: 15 }}>📋</span>
         </div>
-        <span style={{ fontSize: 18, fontWeight: 500, color: "#3c3c3c", letterSpacing: "-0.2px" }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#111", letterSpacing: "-0.3px" }}>
           FlowClip
         </span>
       </div>
 
       <div style={{ flex: 1 }} />
 
-      {/* Right icons */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 140, justifyContent: "flex-end" }}>
-        <button style={iconBtn} title="Refresh"><RefreshIcon /></button>
-        <button style={iconBtn} title="Settings"><SettingsIcon /></button>
-        <button
-          onClick={onLogout}
-          title={`Logout (${user?.email})`}
-          style={{
-            width: 32, height: 32, borderRadius: "50%",
-            background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer",
-            border: "none",
-          }}
-        >
-          {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?"}
-        </button>
+      {/* Right side */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+
+        {/* User menu */}
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: "#4f46e5",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 600, color: "#fff",
+              cursor: "pointer", border: "none",
+            }}
+          >
+            {initial}
+          </button>
+
+          {menuOpen && (
+            <div style={{
+              position: "absolute",
+              right: 0,
+              top: "calc(100% + 8px)",
+              background: "#fff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 10,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+              minWidth: 200,
+              zIndex: 100,
+              overflow: "hidden",
+            }}>
+              {/* User info */}
+              <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>
+                  {user?.name || "User"}
+                </div>
+                <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                  {user?.email}
+                </div>
+              </div>
+
+              {/* Logout */}
+              <button
+                onClick={() => { setMenuOpen(false); onLogout?.(); }}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 16px",
+                  border: "none",
+                  background: "none",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  color: "#dc2626",
+                  textAlign: "left",
+                }}
+              >
+                <LogoutIcon />
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
@@ -59,12 +125,12 @@ const iconBtn = {
   background: "none",
   border: "none",
   cursor: "pointer",
-  padding: 8,
-  borderRadius: "50%",
+  padding: 7,
+  borderRadius: 7,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: "#5f5f5f",
+  color: "#6b7280",
 };
 
 function HamburgerIcon() {
@@ -77,20 +143,12 @@ function HamburgerIcon() {
   );
 }
 
-function RefreshIcon() {
+function LogoutIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="23 4 23 10 17 10"/>
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-    </svg>
-  );
-}
-
-function SettingsIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
     </svg>
   );
 }
