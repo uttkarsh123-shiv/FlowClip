@@ -23,23 +23,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle screenshot capture
   if (message.type === "CAPTURE_SCREENSHOT") {
-    console.log("Background received CAPTURE_SCREENSHOT message"); // Debug log
-    chrome.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
+    console.log("Background received CAPTURE_SCREENSHOT message");
+    // Use JPEG with quality 0.6 to keep size under 1MB
+    chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 60 }, (dataUrl) => {
       if (chrome.runtime.lastError) {
         console.error("Screenshot failed:", chrome.runtime.lastError);
         return;
       }
       
-      console.log("Screenshot captured successfully"); // Debug log
-      // Store screenshot data and show confirmation
+      console.log("Screenshot captured successfully");
       pendingScreenshot = {
         imageData: dataUrl,
-   
         url: message.payload.url,
         tabId: sender.tab.id
       };
       
-      // Show screenshot confirmation modal
       chrome.tabs.sendMessage(sender.tab.id, {
         type: "SHOW_SCREENSHOT_CONFIRMATION",
         payload: { imageData: dataUrl, url: message.payload.url }
