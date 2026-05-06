@@ -1,4 +1,4 @@
-export default function Navbar({ onMenuClick }) {
+export default function Navbar({ onMenuClick, onLogout, user }) {
 
   return (
     <nav style={{
@@ -32,20 +32,24 @@ export default function Navbar({ onMenuClick }) {
         </span>
       </div>
 
-      {/* Search bar — coming soon */}
       <div style={{ flex: 1 }} />
 
       {/* Right icons */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 140, justifyContent: "flex-end" }}>
         <button style={iconBtn} title="Refresh"><RefreshIcon /></button>
         <button style={iconBtn} title="Settings"><SettingsIcon /></button>
-        <div style={{
-          width: 32, height: 32, borderRadius: "50%",
-          background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer",
-        }}>
-          FC
-        </div>
+        <button
+          onClick={onLogout}
+          title={`Logout (${user?.email})`}
+          style={{
+            width: 32, height: 32, borderRadius: "50%",
+            background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer",
+            border: "none",
+          }}
+        >
+          {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?"}
+        </button>
       </div>
     </nav>
   );
