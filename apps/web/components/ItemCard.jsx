@@ -13,7 +13,7 @@ const typeColor = {
   image: { bg: "#fff7ed", color: "#ea580c" },
 };
 
-export default function ItemCard({activeType}) {
+export default function ItemCard({activeType, searchQuery = "", onCountChange}) {
   const { user } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -27,15 +27,18 @@ export default function ItemCard({activeType}) {
         setOpenMenuId(null);
       }
     };
-
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const filteredItems = 
-  activeType === "all" 
-  ? items 
-  : items?.filter((item) => item.type === activeType);
+  const filteredItems = items
+    ?.filter((item) => activeType === "all" || item.type === activeType)
+    ?.filter((item) => !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  // Report count to parent
+  useEffect(() => {
+    if (items && onCountChange) onCountChange(items.length);
+  }, [items?.length]);
 
   const handleDelete = (id) => {
     deleteItem({ id });
@@ -82,7 +85,7 @@ export default function ItemCard({activeType}) {
               {/* Header: badge + kebab */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <span style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: "0.6px",
                   textTransform: "uppercase",
@@ -132,19 +135,19 @@ export default function ItemCard({activeType}) {
               ) : item.type === "link" ? (
                 <a href={item.content} target="_blank" rel="noreferrer" style={{
                   display: "block",
-                  fontSize: 14,
+                  fontSize: 15,
                   color: "#2563eb",
                   wordBreak: "break-all",
-                  lineHeight: 1.5,
+                  lineHeight: 1.6,
                   textDecoration: "none",
                 }}>
                   {item.content}
                 </a>
               ) : (
                 <p style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   color: "#1a1a1a",
-                  lineHeight: 1.65,
+                  lineHeight: 1.7,
                   wordBreak: "break-word",
                   margin: 0,
                   display: "-webkit-box",
@@ -173,7 +176,7 @@ export default function ItemCard({activeType}) {
               )}
 
               {/* Timestamp */}
-              <p style={{ marginTop: 12, fontSize: 11, color: "#ccc", borderTop: "1px solid #f5f5f5", paddingTop: 10, margin: "12px 0 0" }}>
+              <p style={{ marginTop: 12, fontSize: 12, color: "#ccc", borderTop: "1px solid #f5f5f5", paddingTop: 10, margin: "12px 0 0" }}>
                 {new Date(item.createdAt).toLocaleString()}
               </p>
             </div>

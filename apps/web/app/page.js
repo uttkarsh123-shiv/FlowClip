@@ -12,23 +12,31 @@ export default function Home() {
   const { user, loading } = useAuth();
   const [activeType, setActiveType] = useState("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [clipCount, setClipCount] = useState(0);
 
   const handleLogout = async () => {
     await logout();
     router.replace("/login");
   };
 
-  // Show nothing while checking auth
   if (loading) return null;
   if (!user) return null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <Navbar onMenuClick={() => setSidebarOpen((o) => !o)} onLogout={handleLogout} user={user} />
+      <Navbar
+        onMenuClick={() => setSidebarOpen((o) => !o)}
+        onLogout={handleLogout}
+        user={user}
+        searchQuery={searchQuery}
+        onSearch={setSearchQuery}
+        clipCount={clipCount}
+      />
       <div style={{ display: "flex", flex: 1 }}>
         <Sidebar active={activeType} onChange={setActiveType} isOpen={sidebarOpen} />
         <main style={{ flex: 1, background: "#fafafa" }}>
-          <ItemCard activeType={activeType} />
+          <ItemCard activeType={activeType} searchQuery={searchQuery} onCountChange={setClipCount} />
         </main>
       </div>
     </div>
