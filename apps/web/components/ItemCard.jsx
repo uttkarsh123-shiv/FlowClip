@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../../convex/_generated/api";
 import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
+import { useAuth } from "@/hooks/useAuth";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeColor = {
@@ -13,9 +14,10 @@ const typeColor = {
 };
 
 export default function ItemCard({activeType}) {
+  const { user } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const items = useQuery(api.items.getItems, {});
+  const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
 
   // Close menu on outside click

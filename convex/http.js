@@ -110,48 +110,52 @@ http.route({
 
 // ─── Clips routes ─────────────────────────────────────────────────────────────
 
+// Helper to get userId from Authorization header
+async function getUserIdFromRequest(ctx, req) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const accessToken = authHeader.slice(7);
+  const user = await ctx.runQuery(api.auth.getMe, { accessToken });
+  return user?._id ?? null;
+}
+
 http.route({
   path: "/clips",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    const userId = await getUserIdFromRequest(ctx, req);
+    if (!userId) return json({ error: "Unauthorized" }, 401);
+
     const body = await req.json();
-    
-    // Handle screenshot data
+
     if (body.type === "image" && body.imageData) {
       await ctx.runMutation(api.items.createItem, {
         type: "image",
         content: body.content || "Screenshot captured",
         url: body.url,
-        imageData: body.imageData
+        imageData: body.imageData,
+        userId,
       });
     } else {
-      // Handle regular text/link data
       const { content, url } = body;
       const isUrl = /^https?:\/\//i.test(content?.trim());
       const type = isUrl ? "link" : "text";
-      await ctx.runMutation(api.items.createItem, { type, content, url });
+      await ctx.runMutation(api.items.createItem, { type, content, url, userId });
     }
-    
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+
+    return json({ ok: true });
   }),
 });
 
 http.route({
   path: "/clips",
   method: "GET",
-  handler: httpAction(async (ctx) => {
-    const items = await ctx.runQuery(api.items.getItems);
-    return new Response(JSON.stringify(items), {
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+  handler: httpAction(async (ctx, req) => {
+    const userId = await getUserIdFromRequest(ctx, req);
+    if (!userId) return json({ error: "Unauthorized" }, 401);
+
+    const items = await ctx.runQuery(api.items.getItems, { userId });
+    return json(items);
   }),
 });
 

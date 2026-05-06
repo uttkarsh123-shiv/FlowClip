@@ -7,7 +7,7 @@ export const createItem = mutation({
     content: v.string(),
     url: v.optional(v.string()),
     imageData: v.optional(v.string()),
-    userId: v.optional(v.string()),
+    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("items", {
@@ -16,18 +16,15 @@ export const createItem = mutation({
     });
   },
 });
- 
+
 export const getItems = query({
-  args: { userId: v.optional(v.string()) },
+  args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    if (args.userId) {
-      return await ctx.db
-        .query("items")
-        .withIndex("by_user", (q) => q.eq("userId", args.userId))
-        .order("desc")
-        .collect();
-    }
-    return await ctx.db.query("items").order("desc").collect();
+    return await ctx.db
+      .query("items")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
   },
 });
 
