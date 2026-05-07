@@ -89,46 +89,57 @@
       .field input {
         background: #fff;
         border: 1px solid #d2d2d7;
-        border-radius: 8px;
+        border-radius: 10px;
         color: #1d1d1f;
-        font-size: 13px;
-        padding: 10px 12px;
+        font-size: 14px;
+        padding: 11px 13px;
         outline: none;
         width: 100%;
         transition: all 0.2s;
       }
       .field input:focus { 
-        border-color: #4f46e5;
+        border-color: #6366f1;
         background: #fff;
-        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
       }
       #login-btn {
-        background: #4f46e5;
+        background: #6366f1;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         color: #fff;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 600;
-        padding: 11px;
-        margin-top: 4px;
+        padding: 12px;
+        margin-top: 6px;
         transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
       }
       #login-btn:hover {
-        background: #4338ca;
+        background: #4f46e5;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        transform: translateY(-1px);
       }
       #login-btn:disabled { 
-        background: #d2d2d7; 
+        background: #4c4f7f; 
         cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
       }
       #login-error { 
         font-size: 12px; 
-        color: #d70015; 
-        min-height: 16px;
-        padding: 8px 10px;
-        background: #fef2f2;
+        color: #ff6b6b; 
+        min-height: 0;
+        padding: 0;
+        background: transparent;
         border-radius: 6px;
-        border-left: 3px solid #d70015;
+        border-left: none;
+      }
+      #login-error:not(:empty) {
+        padding: 8px 10px;
+        background: rgba(255, 107, 107, 0.1);
+        border-left: 3px solid #ff6b6b;
+        margin-bottom: 12px;
       }
 
       /* ── Clips view ── */
@@ -144,18 +155,18 @@
       }
       #search {
         width: 100%;
-        padding: 9px 12px;
+        padding: 11px 14px;
         background: #333;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         color: #fff;
-        font-size: 13px;
+        font-size: 14px;
         outline: none;
         transition: all 0.2s;
       }
       #search:focus {
         background: #444;
-        box-shadow: 0 0 0 1px #555;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
       }
       #search::placeholder { color: #888; }
       #clips { 
@@ -178,36 +189,37 @@
         background: #a1a1a6;
       }
       .clip {
-        padding: 12px;
-        margin-bottom: 8px;
+        padding: 14px;
+        margin-bottom: 10px;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.2s;
         display: flex;
-        gap: 10px;
+        gap: 12px;
         align-items: flex-start;
         background: #c7ccfc;
-        border-radius: 10px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       }
       .clip:hover { 
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
       }
       .clip-icon {
-        font-size: 14px;
+        font-size: 16px;
         flex-shrink: 0;
         margin-top: 2px;
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
+        border-radius: 8px;
         background: rgba(0, 0, 0, 0.1);
         color: #1E1F1E;
+        font-weight: 600;
       }
       .clip-icon.link {
-        background: #e6fab8;
+        background: #ffe5a2;
         color: #1E1F1E;
       }
       .clip-icon.code {
@@ -229,15 +241,16 @@
       .clip-text {
         font-size: 13px;
         color: #1E1F1E;
-        line-height: 1.4;
+        line-height: 1.5;
         word-break: break-word;
         white-space: normal;
-        margin-bottom: 4px;
-        font-weight: 400;
+        margin-bottom: 5px;
+        font-weight: 500;
       }
       .clip-time { 
         font-size: 11px; 
         color: #666;
+        font-weight: 400;
       }
       #empty {
         padding: 50px 24px;
@@ -281,8 +294,8 @@
 
     <!-- Clips view -->
     <div id="clips-view">
-      <div class="search-container">
-        <input id="search" type="text" placeholder="Search clips..." />
+      <div style="padding: 16px 16px 12px;">
+        <div style="font-size: 12px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px;">Recent Capture</div>
       </div>
       <div id="clips">
         <div id="empty">No clips yet</div>

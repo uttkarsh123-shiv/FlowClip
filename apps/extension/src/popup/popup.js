@@ -150,7 +150,10 @@ function renderClips(clips) {
     return;
   }
 
-  container.innerHTML = clips
+  // Show only top 5 clips
+  const topClips = clips.slice(0, 5);
+
+  container.innerHTML = topClips
     .map((clip, i) => {
       const time = new Date(clip.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       const { icon, type } = getClipIcon(clip.content);
@@ -168,7 +171,7 @@ function renderClips(clips) {
 
   container.querySelectorAll(".clip").forEach((el) => {
     el.addEventListener("click", () => {
-      const clip = clips[+el.dataset.index];
+      const clip = topClips[+el.dataset.index];
       navigator.clipboard.writeText(clip.content);
     });
   });
@@ -189,11 +192,6 @@ function getClipPreview(content) {
   }
   return content;
 }
-
-document.getElementById("search").addEventListener("input", (e) => {
-  const q = e.target.value.toLowerCase();
-  renderClips(allClips.filter((c) => c.content.toLowerCase().includes(q)));
-});
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
