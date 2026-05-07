@@ -196,9 +196,23 @@
         display: flex;
         gap: 12px;
         align-items: flex-start;
-        background: #c7ccfc;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      .clip.text {
+        background: #c7ccfc;
+      }
+      .clip.link {
+        background: #e6fab8;
+      }
+      .clip.image {
+        background: #efc7ff;
+      }
+      .clip.code {
+        background: #c7ccfc;
+      }
+      .clip.screenshot {
+        background: #efc7ff;
       }
       .clip:hover { 
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -218,22 +232,6 @@
         color: #1E1F1E;
         font-weight: 600;
       }
-      .clip-icon.link {
-        background: #ffe5a2;
-        color: #1E1F1E;
-      }
-      .clip-icon.code {
-        background: #e6fab8;
-        color: #1E1F1E;
-      }
-      .clip-icon.image {
-        background: #efc7ff;
-        color: #1E1F1E;
-      }
-      .clip-icon.screenshot {
-        background: #efc7ff;
-        color: #1E1F1E;
-      }
       .clip-content {
         flex: 1;
         min-width: 0;
@@ -249,7 +247,8 @@
       }
       .clip-time { 
         font-size: 11px; 
-        color: #666;
+        color: #1E1F1E;
+        opacity: 0.6;
         font-weight: 400;
       }
       #empty {

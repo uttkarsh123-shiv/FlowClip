@@ -159,8 +159,8 @@ function renderClips(clips) {
       const { icon, type } = getClipIcon(clip.content);
       const preview = getClipPreview(clip.content);
       return `
-        <div class="clip" data-index="${i}">
-          <div class="clip-icon ${type}">${icon}</div>
+        <div class="clip ${type}" data-index="${i}">
+          <div class="clip-icon">${icon}</div>
           <div class="clip-content">
             <div class="clip-text">${preview}</div>
             <div class="clip-time">${time}</div>
