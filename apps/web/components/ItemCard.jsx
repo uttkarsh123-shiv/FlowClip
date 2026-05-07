@@ -40,7 +40,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const handleDelete = (id) => { deleteItem({ id }); setOpenMenuId(null); };
 
   return (
-    <div style={{ padding: "32px 40px", background: "#fff", minHeight: "calc(100vh - 72px)", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
 
       {!items && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
@@ -54,25 +54,25 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         </div>
       )}
 
-      <div style={{ columns: "3 320px", columnGap: 24 }}>
+      <div style={{ columns: "3 340px", columnGap: 28 }}>
         {filteredItems?.map((item) => {
           const badge = typeBadge[item.type] ?? typeBadge.text;
           return (
             <div key={item._id} style={{
               breakInside: "avoid",
-              marginBottom: 24,
+              marginBottom: 28,
               background: "#f9fafb",
               border: "1px solid #f0f0f0",
-              borderRadius: 14,
-              padding: "20px",
+              borderRadius: 16,
+              padding: "28px 28px",
               transition: "all 0.2s",
             }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#10b981"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(16, 185, 129, 0.08)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#f0f0f0"; e.currentTarget.style.boxShadow = "none"; }}>
 
               {/* Header */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", background: badge.bg, color: badge.color, borderRadius: 4, padding: "4px 8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", background: badge.bg, color: badge.color, borderRadius: 5, padding: "5px 10px" }}>
                   {typeLabel[item.type] ?? "Clip"}
                 </span>
                 <div className="kebab-container" style={{ position: "relative" }}>
@@ -123,7 +123,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               )}
 
               {/* Timestamp */}
-              <p style={{ marginTop: 12, fontSize: 11, color: "#bbb", borderTop: "1px solid #f0f0f0", paddingTop: 10, margin: "12px 0 0" }}>
+              <p style={{ marginTop: 16, fontSize: 12, color: "#bbb", borderTop: "1px solid #f0f0f0", paddingTop: 14, margin: "16px 0 0" }}>
                 {new Date(item.createdAt).toLocaleString()}
               </p>
             </div>

@@ -38,7 +38,7 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       {/* Left — green panel */}
-      <div style={{ width: "45%", background: "#10b981", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px", position: "relative", overflow: "hidden" }}>
+      <div style={{ width: "45%", background: "#10b981", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "64px", position: "relative", overflow: "hidden" }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 32, height: 32, background: "#000", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 16, color: "#fff" }}>F</div>
@@ -67,12 +67,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right — form */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "#fff" }}>
-        <div style={{ width: "100%", maxWidth: 380 }}>
-          <h1 style={{ fontSize: 32, fontWeight: 900, color: "#000", marginBottom: 8, letterSpacing: "-0.5px" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "64px", background: "#fff" }}>
+        <div style={{ width: "100%", maxWidth: 420 }}>
+          <h1 style={{ fontSize: 36, fontWeight: 900, color: "#000", marginBottom: 10, letterSpacing: "-0.5px" }}>
             {mode === "login" ? "Welcome back" : "Create account"}
           </h1>
-          <p style={{ fontSize: 15, color: "#666", marginBottom: 36, fontWeight: 400 }}>
+          <p style={{ fontSize: 16, color: "#666", marginBottom: 40, fontWeight: 400 }}>
             {mode === "login" ? "Sign in to your FlowClip account" : "Start capturing smarter today"}
           </p>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
             {error && <p style={{ fontSize: 13, color: "#dc2626", marginBottom: 16, fontWeight: 500 }}>{error}</p>}
 
             <button type="submit" disabled={isLoading}
-              style={{ width: "100%", padding: "12px", background: isLoading ? "#ccc" : "#10b981", color: "#fff", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+              style={{ width: "100%", padding: "14px", background: isLoading ? "#ccc" : "#10b981", color: "#fff", border: "none", borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s" }}
               onMouseEnter={(e) => { if (!isLoading) e.target.style.background = "#059669"; }}
               onMouseLeave={(e) => { if (!isLoading) e.target.style.background = "#10b981"; }}>
               {isLoading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}

@@ -11,11 +11,11 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
   if (!isOpen) return null;
   return (
     <aside style={{
-      width: 220,
-      minHeight: "calc(100vh - 72px)",
+      width: 240,
+      minHeight: "calc(100vh - 80px)",
       background: "#fff",
       borderRight: "1px solid #f0f0f0",
-      padding: "16px 12px",
+      padding: "24px 16px",
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
     }}>
       {NAV_ITEMS.map((item) => {
@@ -26,17 +26,17 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
               width: "100%",
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              padding: "10px 14px",
+              gap: 14,
+              padding: "13px 18px",
               background: isActive ? "#ecfdf5" : "transparent",
               border: "none",
-              borderRadius: 8,
+              borderRadius: 10,
               cursor: "pointer",
               textAlign: "left",
               color: isActive ? "#059669" : "#666",
               fontWeight: isActive ? 700 : 500,
-              fontSize: 14,
-              marginBottom: 2,
+              fontSize: 15,
+              marginBottom: 4,
               transition: "all 0.15s",
             }}
             onMouseEnter={(e) => { if (!isActive) { e.target.style.background = "#f5f5f5"; e.target.style.color = "#000"; } }}
