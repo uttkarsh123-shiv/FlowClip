@@ -12,9 +12,9 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
   return (
     <aside style={{
       width: 220,
-      minHeight: "calc(100vh - 64px)",
-      background: "#fff",
-      borderRight: "1px solid #f0f0f0",
+      minHeight: "calc(100vh - 88px)",
+      background: "#1f1f1f",
+      borderRight: "1px solid #333",
       padding: "12px 12px",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
@@ -30,12 +30,12 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
               alignItems: "center",
               gap: 12,
               padding: "9px 14px",
-              background: isActive ? "#eef2ff" : "transparent",
+              background: isActive ? "#333" : "transparent",
               border: "none",
               borderRadius: 8,
               cursor: "pointer",
               textAlign: "left",
-              color: isActive ? "#4f46e5" : "#555",
+              color: isActive ? "#fff" : "#aaa",
               fontWeight: isActive ? 600 : 500,
               fontSize: 15,
               marginBottom: 2,
@@ -43,7 +43,7 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
               letterSpacing: "-0.1px",
             }}
           >
-            <span style={{ color: isActive ? "#4f46e5" : "#999", flexShrink: 0 }}>
+            <span style={{ color: isActive ? "#fff" : "#666", flexShrink: 0 }}>
               {item.icon}
             </span>
             {item.label}

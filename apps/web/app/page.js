@@ -24,7 +24,7 @@ export default function Home() {
   if (!user) return null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#1f1f1f" }}>
       <Navbar
         onMenuClick={() => setSidebarOpen((o) => !o)}
         onLogout={handleLogout}
@@ -35,7 +35,7 @@ export default function Home() {
       />
       <div style={{ display: "flex", flex: 1 }}>
         <Sidebar active={activeType} onChange={setActiveType} isOpen={sidebarOpen} />
-        <main style={{ flex: 1, background: "#fafafa" }}>
+        <main style={{ flex: 1, background: "#1f1f1f" }}>
           <ItemCard activeType={activeType} searchQuery={searchQuery} onCountChange={setClipCount} />
         </main>
       </div>

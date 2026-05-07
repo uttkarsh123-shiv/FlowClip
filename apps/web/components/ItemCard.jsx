@@ -8,9 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeColor = {
-  text:  { bg: "#eff6ff", color: "#2563eb" },
-  link:  { bg: "#f0fdf4", color: "#16a34a" },
-  image: { bg: "#fff7ed", color: "#ea580c" },
+  text:  { bg: "#c7ccfc", color: "#1E1F1E" },
+  link:  { bg: "#e6fab8", color: "#1E1F1E" },
+  image: { bg: "#efc7ff", color: "#1E1F1E" },
 };
 
 export default function ItemCard({activeType, searchQuery = "", onCountChange}) {
@@ -47,7 +47,7 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
   return (
     <div style={{
       padding: "24px 28px",
-      background: "#fafafa",
+      background: "#1f1f1f",
       minHeight: "120vh",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
@@ -75,24 +75,25 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
             <div key={item._id} style={{
               breakInside: "avoid",
               marginBottom: 16,
-              background: "#fff",
-              border: "1px solid #ebebeb",
-              borderRadius: 12,
-              padding: "16px",
+              background: tag.bg,
+              border: "none",
+              borderRadius: 16,
+              padding: "18px",
               cursor: "default",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             }}>
               {/* Header: badge + kebab */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
-                  letterSpacing: "0.6px",
+                  letterSpacing: "0.5px",
                   textTransform: "uppercase",
-                  background: tag.bg,
+                  background: "rgba(255,255,255,0.6)",
                   color: tag.color,
-                  borderRadius: 4,
-                  padding: "3px 8px",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  backdropFilter: "blur(10px)",
                 }}>
                   {typeLabel[item.type] ?? "Clip"}
                 </span>
@@ -100,15 +101,15 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
                 <div className="kebab-container" style={{ position: "relative" }}>
                   <button 
                     onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
-                    style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "#bbb" }}
+                    style={{ background: "none", border: "none", padding: 6, cursor: "pointer", color: tag.color, opacity: 0.6 }}
                   >
                     <KebabIcon />
                   </button>
                   {openMenuId === item._id && (
-                    <div style={{ position: "absolute", right: 0, bottom: "100%", background: "#fff", border: "1px solid #e0e0e0", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 100, marginBottom: 4 }}>
+                    <div style={{ position: "absolute", right: 0, bottom: "100%", background: "#fff", border: "1px solid #e0e0e0", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.12)", zIndex: 10, minWidth: 110, marginBottom: 6 }}>
                       <button 
                         onClick={() => handleDelete(item._id)}
-                        style={{ display: "block", width: "100%", padding: "10px 16px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#dc2626" }}
+                        style={{ display: "block", width: "100%", padding: "11px 16px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#d70015", fontWeight: 500 }}
                       >
                         Delete
                       </button>
@@ -125,8 +126,8 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
                   onClick={() => setSelectedImage(item.imageData)}
                   style={{
                     width: "100%",
-                    borderRadius: 8,
-                    maxHeight: 180,
+                    borderRadius: 12,
+                    maxHeight: 200,
                     objectFit: "cover",
                     cursor: "pointer",
                     display: "block",
@@ -136,17 +137,18 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
                 <a href={item.content} target="_blank" rel="noreferrer" style={{
                   display: "block",
                   fontSize: 15,
-                  color: "#2563eb",
+                  color: tag.color,
                   wordBreak: "break-all",
                   lineHeight: 1.6,
                   textDecoration: "none",
+                  fontWeight: 500,
                 }}>
                   {item.content}
                 </a>
               ) : (
                 <p style={{
                   fontSize: 15,
-                  color: "#1a1a1a",
+                  color: tag.color,
                   lineHeight: 1.7,
                   wordBreak: "break-word",
                   margin: 0,
@@ -154,6 +156,7 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
                   WebkitLineClamp: 6,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  fontWeight: 500,
                 }}>
                   {item.content}
                 </p>
@@ -163,20 +166,21 @@ export default function ItemCard({activeType, searchQuery = "", onCountChange}) 
               {item.url && item.type !== "link" && (
                 <a href={item.url} target="_blank" rel="noreferrer" style={{
                   display: "block",
-                  marginTop: 10,
-                  fontSize: 11,
-                  color: "#aaa",
+                  marginTop: 12,
+                  fontSize: 12,
+                  color: tag.color,
+                  opacity: 0.7,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   textDecoration: "none",
                 }}>
-                  🔗 {item.url}
+                  {item.url}
                 </a>
               )}
 
               {/* Timestamp */}
-              <p style={{ marginTop: 12, fontSize: 12, color: "#ccc", borderTop: "1px solid #f5f5f5", paddingTop: 10, margin: "12px 0 0" }}>
+              <p style={{ marginTop: 12, fontSize: 12, color: tag.color, opacity: 0.6, borderTop: "none", paddingTop: 10, margin: "12px 0 0" }}>
                 {new Date(item.createdAt).toLocaleString()}
               </p>
             </div>
