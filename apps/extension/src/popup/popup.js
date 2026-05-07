@@ -146,7 +146,7 @@ function renderClips(clips) {
   count.textContent = `${clips.length} clip${clips.length !== 1 ? "s" : ""}`;
 
   if (clips.length === 0) {
-    container.innerHTML = '<div id="empty"><div id="empty-icon">📌</div><div>No clips yet</div></div>';
+    container.innerHTML = '<div id="empty">No clips yet</div>';
     return;
   }
 
@@ -175,12 +175,12 @@ function renderClips(clips) {
 }
 
 function getClipIcon(content) {
-  if (/^https?:\/\//.test(content)) return { icon: "🔗", type: "link" };
-  if (/^data:image/.test(content)) return { icon: "🖼️", type: "image" };
-  if (/^```|^function|^const|^let|^var|^class|^import|^export/.test(content)) return { icon: "💻", type: "code" };
-  if (/^{|^\[/.test(content.trim())) return { icon: "{ }", type: "code" };
-  if (/^Screenshot|^Image|^Photo/.test(content)) return { icon: "📸", type: "screenshot" };
-  return { icon: "📝", type: "text" };
+  if (/^https?:\/\//.test(content)) return { icon: "↗", type: "link" };
+  if (/^data:image/.test(content)) return { icon: "◻", type: "image" };
+  if (/^```|^function|^const|^let|^var|^class|^import|^export/.test(content)) return { icon: "<>", type: "code" };
+  if (/^{|^\[/.test(content.trim())) return { icon: "<>", type: "code" };
+  if (/^Screenshot|^Image|^Photo/.test(content)) return { icon: "◻", type: "screenshot" };
+  return { icon: "T", type: "text" };
 }
 
 function getClipPreview(content) {

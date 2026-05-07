@@ -21,12 +21,12 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       boxSizing: "border-box",
       display: "flex",
       alignItems: "center",
-      gap: 24,
-      padding: "16px 40px",
+      gap: 20,
+      padding: "14px 28px",
       background: "#fff",
-      borderBottom: "1px solid #ebebeb",
+      borderBottom: "1px solid #e5e7eb",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      height: 90,
+      height: 80,
       position: "sticky",
       top: 0,
       zIndex: 50,
@@ -38,21 +38,21 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       </button>
 
       {/* Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{
-          width: 34, height: 34, borderRadius: 8,
+          width: 32, height: 32, borderRadius: 6,
           background: "#4f46e5",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          <span style={{ fontSize: 17 }}>📋</span>
+          <span style={{ fontSize: 16 }}>📋</span>
         </div>
-        <span style={{ fontSize: 19, fontWeight: 600, color: "#111", letterSpacing: "-0.3px" }}>
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#1f2937", letterSpacing: "-0.2px" }}>
           FlowClip
         </span>
       </div>
 
       {/* Search */}
-      <div style={{ flex: 1, maxWidth: 440, marginLeft: 20 }}>
+      <div style={{ flex: 1, maxWidth: 380, marginLeft: 12 }}>
         <div style={{ position: "relative" }}>
           <span style={{
             position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
@@ -67,19 +67,19 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
             onChange={(e) => onSearch?.(e.target.value)}
             style={{
               width: "100%",
-              padding: "11px 36px 11px 38px",
-              background: "#f5f5f5",
-              border: "1px solid transparent",
-              borderRadius: 10,
-              fontSize: 15,
-              color: "#111",
+              padding: "9px 34px 9px 36px",
+              background: "#f3f4f6",
+              border: "1px solid #e5e7eb",
+              borderRadius: 6,
+              fontSize: 13,
+              color: "#1f2937",
               outline: "none",
               boxSizing: "border-box",
               fontFamily: "inherit",
-              transition: "background 0.15s, border-color 0.15s",
+              transition: "all 0.15s",
             }}
-            onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.borderColor = "#d1d5db"; }}
-            onBlur={(e) => { e.target.style.background = "#f5f5f5"; e.target.style.borderColor = "transparent"; }}
+            onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.borderColor = "#4f46e5"; e.target.style.boxShadow = "0 0 0 2px rgba(79, 70, 229, 0.08)"; }}
+            onBlur={(e) => { e.target.style.background = "#f3f4f6"; e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }}
           />
           {searchQuery && (
             <button onClick={() => onSearch?.("")} style={{
@@ -96,17 +96,17 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       <div style={{ flex: 1 }} />
 
       {/* Clip count — plain text, no badge */}
-      <span style={{ fontSize: 14, color: "#9ca3af", fontWeight: 500 }}>
+      <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 500 }}>
         {clipCount ?? 0} clips
       </span>
 
       {/* Live dot — just a dot, no pill */}
-      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <span style={{
-          width: 7, height: 7, borderRadius: "50%",
+          width: 6, height: 6, borderRadius: "50%",
           background: "#22c55e", display: "inline-block",
         }} />
-        <span style={{ fontSize: 12, color: "#6b7280" }}>live</span>
+        <span style={{ fontSize: 11, color: "#6b7280" }}>live</span>
       </div>
 
       {/* User avatar */}
@@ -114,10 +114,10 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
         <button
           onClick={() => setMenuOpen((o) => !o)}
           style={{
-            width: 36, height: 36, borderRadius: "50%",
+            width: 34, height: 34, borderRadius: "50%",
             background: "#4f46e5",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 13, fontWeight: 600, color: "#fff",
+            fontSize: 12, fontWeight: 600, color: "#fff",
             cursor: "pointer", border: "none",
           }}
         >
@@ -128,20 +128,20 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
           <div style={{
             position: "absolute", right: 0, top: "calc(100% + 8px)",
             background: "#fff", border: "1px solid #e5e7eb",
-            borderRadius: 10, boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-            minWidth: 210, zIndex: 100, overflow: "hidden",
+            borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            minWidth: 200, zIndex: 100, overflow: "hidden",
           }}>
-            <div style={{ padding: "13px 16px", borderBottom: "1px solid #f3f4f6" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>
+            <div style={{ padding: "12px 14px", borderBottom: "1px solid #f3f4f6" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#1f2937" }}>
                 {user?.name || "User"}
               </div>
-              <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>
                 {user?.email}
               </div>
             </div>
 
-            <div style={{ padding: "8px 16px", borderBottom: "1px solid #f3f4f6" }}>
-              <span style={{ fontSize: 12, color: "#6b7280" }}>
+            <div style={{ padding: "8px 14px", borderBottom: "1px solid #f3f4f6" }}>
+              <span style={{ fontSize: 11, color: "#6b7280" }}>
                 {clipCount ?? 0} clips captured
               </span>
             </div>
@@ -149,9 +149,9 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
             <button
               onClick={() => { setMenuOpen(false); onLogout?.(); }}
               style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 9,
-                padding: "11px 16px", border: "none", background: "none",
-                cursor: "pointer", fontSize: 13, color: "#dc2626", textAlign: "left",
+                width: "100%", display: "flex", alignItems: "center", gap: 8,
+                padding: "10px 14px", border: "none", background: "none",
+                cursor: "pointer", fontSize: 12, color: "#dc2626", textAlign: "left",
               }}
             >
               <LogoutIcon />
@@ -166,9 +166,10 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
 
 const iconBtn = {
   background: "none", border: "none", cursor: "pointer",
-  padding: 8, borderRadius: 7,
+  padding: 6, borderRadius: 5,
   display: "flex", alignItems: "center", justifyContent: "center",
   color: "#6b7280",
+  transition: "all 0.15s",
 };
 
 function HamburgerIcon() {
