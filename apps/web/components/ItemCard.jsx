@@ -8,9 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeColor = {
-  text:  { bg: "#c7ccfc", color: "#1E1F1E" },
-  link:  { bg: "#e6fab8", color: "#1E1F1E" },
-  image: { bg: "#efc7ff", color: "#1E1F1E" },
+  text:  { bg: "#a8e6c1", color: "#1E1F1E" },
+  link:  { bg: "#7fd8be", color: "#1E1F1E" },
+  image: { bg: "#56c596", color: "#1E1F1E" },
 };
 
 export default function ItemCard({activeType, searchQuery = "", onCountChange}) {
