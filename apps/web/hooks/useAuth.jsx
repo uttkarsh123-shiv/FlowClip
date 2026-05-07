@@ -1,11 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { getAccessToken, getRefreshToken, getValidAccessToken, clearTokens } from "@/lib/auth";
 
 export function useAuth() {
-  const router = useRouter();
-  const [user, setUser] = useState(null);       // null = loading, false = not authed
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,8 +11,9 @@ export function useAuth() {
       try {
         const refreshToken = getRefreshToken();
         if (!refreshToken) {
-          // No tokens at all → redirect to login
-          router.replace("/login");
+          // No tokens → user not authenticated
+          setUser(false);
+          setLoading(false);
           return;
         }
 
@@ -29,7 +28,8 @@ export function useAuth() {
 
         if (!res.ok) {
           clearTokens();
-          router.replace("/login");
+          setUser(false);
+          setLoading(false);
           return;
         }
 
@@ -37,14 +37,14 @@ export function useAuth() {
         setUser(userData);
       } catch {
         clearTokens();
-        router.replace("/login");
+        setUser(false);
       } finally {
         setLoading(false);
       }
     }
 
     checkAuth();
-  }, [router]);
+  }, []);
 
   return { user, loading };
 }

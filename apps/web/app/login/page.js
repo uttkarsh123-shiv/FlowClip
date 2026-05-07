@@ -1,21 +1,30 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { login, register } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/");
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setIsLoading(true);
     try {
       if (mode === "login") {
         await login(email, password);
@@ -26,9 +35,12 @@ export default function LoginPage() {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+
+  if (loading) return null;
+  if (user) return null;
 
   return (
     <div style={{
@@ -111,20 +123,20 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             style={{
               width: "100%",
               padding: "10px",
-              background: loading ? "#4c4f7f" : "#6366f1",
+              background: isLoading ? "#4c4f7f" : "#6366f1",
               color: "#fff",
               border: "none",
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 500,
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: isLoading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+            {isLoading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
 
