@@ -3,113 +3,277 @@
   <head>
     <meta charset="utf-8" />
     <title>FlowClip</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
-        width: 340px;
-        min-height: 400px;
+        width: 420px;
+        min-height: 520px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #0f0f0f;
-        color: #f0f0f0;
+        background: linear-gradient(135deg, #fafbfc 0%, #f5f7fa 100%);
+        color: #1a1a1a;
       }
 
       /* ── Header ── */
       header {
-        padding: 14px 16px;
-        border-bottom: 1px solid #222;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e8ecf1;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       }
-      header h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
-      header span { font-size: 11px; color: #666; }
+      header h1 { 
+        font-size: 18px; 
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      header h1::before {
+        content: "";
+        width: 24px;
+        height: 24px;
+        background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%234f46e5;stop-opacity:1" /><stop offset="100%" style="stop-color:%237c3aed;stop-opacity:1" /></linearGradient></defs><g transform="translate(64, 64)"><path d="M -20 -15 Q -25 -15 -25 -10 L -25 10 Q -25 15 -20 15 L -8 15 Q -3 15 -3 10 L -3 -10 Q -3 -15 -8 -15 Z" fill="url(%23g)"/><path d="M 20 -15 Q 25 -15 25 -10 L 25 10 Q 25 15 20 15 L 8 15 Q 3 15 3 10 L 3 -10 Q 3 -15 8 -15 Z" fill="url(%23g)"/><path d="M -3 -8 Q 0 -12 3 -8 M -3 0 Q 0 -4 3 0 M -3 8 Q 0 4 3 8" stroke="url(%23g)" stroke-width="2.5" fill="none" stroke-linecap="round"/></g></svg>') center / contain no-repeat;
+        -webkit-text-fill-color: unset;
+      }
+      header .header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      header span { 
+        font-size: 12px; 
+        color: #4f46e5;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+      }
       #logout-btn {
-        background: none;
-        border: 1px solid #333;
-        color: #888;
-        font-size: 11px;
-        padding: 4px 10px;
-        border-radius: 4px;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        border: 1px solid #d1d5db;
+        color: #4b5563;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
         cursor: pointer;
         display: none;
+        transition: all 0.2s;
+        font-weight: 500;
       }
-      #logout-btn:hover { color: #f0f0f0; border-color: #555; }
+      #logout-btn:hover { 
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        border-color: #9ca3af;
+        color: #1f2937;
+      }
 
       /* ── Login view ── */
       #login-view {
-        padding: 24px 20px;
+        padding: 40px 28px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 20px;
       }
-      #login-view h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-      #login-view p { font-size: 12px; color: #666; margin-bottom: 8px; }
-      .field { display: flex; flex-direction: column; gap: 5px; }
-      .field label { font-size: 11px; color: #888; }
+      #login-view h2 { 
+        font-size: 24px; 
+        font-weight: 700;
+        background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      #login-view p { 
+        font-size: 13px; 
+        color: #6b7280;
+      }
+      .field { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 8px;
+      }
+      .field label { 
+        font-size: 12px; 
+        color: #374151;
+        font-weight: 600;
+      }
       .field input {
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 6px;
-        color: #f0f0f0;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        color: #1a1a1a;
         font-size: 13px;
-        padding: 8px 10px;
+        padding: 10px 12px;
         outline: none;
         width: 100%;
+        transition: all 0.2s;
       }
-      .field input:focus { border-color: #4f46e5; }
+      .field input:focus { 
+        border-color: #4f46e5;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
       #login-btn {
-        background: #4f46e5;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         color: #fff;
         cursor: pointer;
         font-size: 13px;
-        font-weight: 500;
-        padding: 9px;
+        font-weight: 600;
+        padding: 11px;
         margin-top: 4px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
       }
-      #login-btn:disabled { background: #3730a3; cursor: not-allowed; }
-      #login-error { font-size: 12px; color: #f87171; min-height: 16px; }
+      #login-btn:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        transform: translateY(-1px);
+      }
+      #login-btn:disabled { 
+        background: #d1d5db; 
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+      #login-error { 
+        font-size: 12px; 
+        color: #dc2626; 
+        min-height: 16px;
+        padding: 8px 10px;
+        background: #fef2f2;
+        border-radius: 6px;
+        border-left: 3px solid #dc2626;
+      }
 
       /* ── Clips view ── */
-      #clips-view { display: none; }
+      #clips-view { 
+        display: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .search-container {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e8ecf1;
+        background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+      }
       #search {
         width: 100%;
-        padding: 10px 16px;
-        background: #1a1a1a;
-        border: none;
-        border-bottom: 1px solid #222;
-        color: #f0f0f0;
+        padding: 10px 14px;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        color: #1a1a1a;
         font-size: 13px;
         outline: none;
+        transition: all 0.2s;
       }
-      #search::placeholder { color: #555; }
-      #clips { overflow-y: auto; max-height: 320px; }
+      #search:focus {
+        background: #fff;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+      #search::placeholder { color: #9ca3af; }
+      #clips { 
+        overflow-y: auto; 
+        flex: 1;
+        padding: 0;
+      }
+      #clips::-webkit-scrollbar {
+        width: 6px;
+      }
+      #clips::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #clips::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+      }
+      #clips::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+      }
       .clip {
-        padding: 10px 16px;
-        border-bottom: 1px solid #1a1a1a;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f1f3;
         cursor: pointer;
-        font-size: 13px;
-        line-height: 1.4;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transition: background 0.15s;
+        transition: all 0.15s;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
       }
-      .clip:hover { background: #1e1e1e; }
-      .clip .time { font-size: 10px; color: #555; margin-top: 3px; }
-      #empty {
-        padding: 40px 16px;
-        text-align: center;
-        color: #444;
+      .clip:hover { 
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+      }
+      .clip-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+      }
+      .clip-icon.link {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+      }
+      .clip-icon.code {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+      }
+      .clip-icon.image {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+      }
+      .clip-icon.screenshot {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+      }
+      .clip-content {
+        flex: 1;
+        min-width: 0;
+      }
+      .clip-text {
         font-size: 13px;
+        color: #1f2937;
+        line-height: 1.4;
+        word-break: break-word;
+        white-space: normal;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .clip-time { 
+        font-size: 11px; 
+        color: #9ca3af;
+      }
+      #empty {
+        padding: 60px 28px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      #empty-icon {
+        font-size: 40px;
+        opacity: 0.5;
       }
     </style>
   </head>
   <body>
     <header>
       <h1>FlowClip</h1>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div class="header-right">
         <span id="count"></span>
         <button id="logout-btn">Logout</button>
       </div>
@@ -118,8 +282,8 @@
     <!-- Login view -->
     <div id="login-view">
       <div>
-        <h2>Sign in</h2>
-        <p>Login to start saving clips</p>
+        <h2>Welcome</h2>
+        <p>Sign in to access your saved clips</p>
       </div>
       <div class="field">
         <label>Email</label>
@@ -135,8 +299,15 @@
 
     <!-- Clips view -->
     <div id="clips-view">
-      <input id="search" type="text" placeholder="Search clips..." />
-      <div id="clips"><div id="empty">No clips yet. Start copying.</div></div>
+      <div class="search-container">
+        <input id="search" type="text" placeholder="Search clips..." />
+      </div>
+      <div id="clips">
+        <div id="empty">
+          <div id="empty-icon">📌</div>
+          <div>No clips yet</div>
+        </div>
+      </div>
     </div>
 
     <script src="popup.js"></script>

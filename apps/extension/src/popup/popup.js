@@ -146,17 +146,22 @@ function renderClips(clips) {
   count.textContent = `${clips.length} clip${clips.length !== 1 ? "s" : ""}`;
 
   if (clips.length === 0) {
-    container.innerHTML = '<div id="empty">No clips yet. Start copying.</div>';
+    container.innerHTML = '<div id="empty"><div id="empty-icon">📌</div><div>No clips yet</div></div>';
     return;
   }
 
   container.innerHTML = clips
     .map((clip, i) => {
       const time = new Date(clip.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const { icon, type } = getClipIcon(clip.content);
+      const preview = getClipPreview(clip.content);
       return `
         <div class="clip" data-index="${i}">
-          ${clip.content}
-          <div class="time">${time}</div>
+          <div class="clip-icon ${type}">${icon}</div>
+          <div class="clip-content">
+            <div class="clip-text">${preview}</div>
+            <div class="clip-time">${time}</div>
+          </div>
         </div>`;
     })
     .join("");
@@ -167,6 +172,22 @@ function renderClips(clips) {
       navigator.clipboard.writeText(clip.content);
     });
   });
+}
+
+function getClipIcon(content) {
+  if (/^https?:\/\//.test(content)) return { icon: "🔗", type: "link" };
+  if (/^data:image/.test(content)) return { icon: "🖼️", type: "image" };
+  if (/^```|^function|^const|^let|^var|^class|^import|^export/.test(content)) return { icon: "💻", type: "code" };
+  if (/^{|^\[/.test(content.trim())) return { icon: "{ }", type: "code" };
+  if (/^Screenshot|^Image|^Photo/.test(content)) return { icon: "📸", type: "screenshot" };
+  return { icon: "📝", type: "text" };
+}
+
+function getClipPreview(content) {
+  if (content.length > 60) {
+    return content.substring(0, 60) + "...";
+  }
+  return content;
 }
 
 document.getElementById("search").addEventListener("input", (e) => {
