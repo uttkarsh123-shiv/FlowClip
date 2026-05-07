@@ -10,7 +10,7 @@
         width: 420px;
         min-height: 580px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
-        background: #f5f5f7;
+        background: #1f1f1f;
         color: #1d1d1f;
       }
 
@@ -20,12 +20,12 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: #f5f5f7;
+        background: #1f1f1f;
       }
       header h1 { 
         font-size: 16px; 
         font-weight: 600;
-        color: #1d1d1f;
+        color: #fff;
         letter-spacing: -0.3px;
       }
       header .header-right {
@@ -36,15 +36,15 @@
       header span { 
         font-size: 11px; 
         color: #6b7280;
-        background: #e8e8ed;
+        background: #333;
         padding: 4px 8px;
         border-radius: 6px;
         font-weight: 500;
       }
       #logout-btn {
-        background: #e8e8ed;
+        background: #333;
         border: none;
-        color: #6b7280;
+        color: #aaa;
         font-size: 11px;
         padding: 5px 10px;
         border-radius: 6px;
@@ -54,8 +54,8 @@
         font-weight: 500;
       }
       #logout-btn:hover { 
-        background: #d8d8dd;
-        color: #1d1d1f;
+        background: #444;
+        color: #fff;
       }
 
       /* ── Login view ── */
@@ -140,28 +140,29 @@
       }
       .search-container {
         padding: 12px 16px;
-        background: #f5f5f7;
+        background: #1f1f1f;
       }
       #search {
         width: 100%;
         padding: 9px 12px;
-        background: #e8e8ed;
+        background: #333;
         border: none;
         border-radius: 8px;
-        color: #1d1d1f;
+        color: #fff;
         font-size: 13px;
         outline: none;
         transition: all 0.2s;
       }
       #search:focus {
-        background: #fff;
-        box-shadow: 0 0 0 1px #d2d2d7;
+        background: #444;
+        box-shadow: 0 0 0 1px #555;
       }
-      #search::placeholder { color: #a1a1a6; }
+      #search::placeholder { color: #888; }
       #clips { 
         overflow-y: auto; 
         flex: 1;
         padding: 8px 12px;
+        background: #1f1f1f;
       }
       #clips::-webkit-scrollbar {
         width: 5px;
@@ -184,7 +185,7 @@
         display: flex;
         gap: 10px;
         align-items: flex-start;
-        background: #fff;
+        background: #c7ccfc;
         border-radius: 10px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
       }
@@ -202,24 +203,24 @@
         align-items: center;
         justify-content: center;
         border-radius: 6px;
-        background: #f5f5f7;
-        color: #6b7280;
+        background: rgba(0, 0, 0, 0.1);
+        color: #1E1F1E;
       }
       .clip-icon.link {
-        background: #e3f2fd;
-        color: #1976d2;
+        background: #e6fab8;
+        color: #1E1F1E;
       }
       .clip-icon.code {
-        background: #e8f5e9;
-        color: #388e3c;
+        background: #e6fab8;
+        color: #1E1F1E;
       }
       .clip-icon.image {
-        background: #f3e5f5;
-        color: #7b1fa2;
+        background: #efc7ff;
+        color: #1E1F1E;
       }
       .clip-icon.screenshot {
-        background: #fff3e0;
-        color: #f57c00;
+        background: #efc7ff;
+        color: #1E1F1E;
       }
       .clip-content {
         flex: 1;
@@ -227,7 +228,7 @@
       }
       .clip-text {
         font-size: 13px;
-        color: #1d1d1f;
+        color: #1E1F1E;
         line-height: 1.4;
         word-break: break-word;
         white-space: normal;
@@ -236,12 +237,12 @@
       }
       .clip-time { 
         font-size: 11px; 
-        color: #a1a1a6;
+        color: #666;
       }
       #empty {
         padding: 50px 24px;
         text-align: center;
-        color: #a1a1a6;
+        color: #666;
         font-size: 13px;
         display: flex;
         flex-direction: column;

@@ -36,33 +36,34 @@ export default function LoginPage() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#f9fafb",
+      background: "#1f1f1f",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
       <div style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
+        background: "#2a2a2a",
+        border: "1px solid #333",
         borderRadius: 12,
         padding: "36px 40px",
         width: "100%",
         maxWidth: 400,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
       }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 8,
-            background: "#4f46e5", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, fontWeight: 600, color: "#fff",
           }}>
-            <span style={{ fontSize: 18 }}>📋</span>
+            L
           </div>
-          <span style={{ fontSize: 20, fontWeight: 600, color: "#111" }}>FlowClip</span>
+          <span style={{ fontSize: 20, fontWeight: 600, color: "#fff" }}>FlowClip</span>
         </div>
 
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: "#111", marginBottom: 4 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: "#fff", marginBottom: 4 }}>
           {mode === "login" ? "Welcome back" : "Create account"}
         </h1>
-        <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 24 }}>
+        <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24 }}>
           {mode === "login" ? "Sign in to your account" : "Start capturing your clips"}
         </p>
 
@@ -105,7 +106,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p style={{ fontSize: 13, color: "#dc2626", marginBottom: 16 }}>{error}</p>
+            <p style={{ fontSize: 13, color: "#ff6b6b", marginBottom: 16 }}>{error}</p>
           )}
 
           <button
@@ -114,7 +115,7 @@ export default function LoginPage() {
             style={{
               width: "100%",
               padding: "10px",
-              background: loading ? "#a5b4fc" : "#4f46e5",
+              background: loading ? "#4c4f7f" : "#6366f1",
               color: "#fff",
               border: "none",
               borderRadius: 8,
@@ -127,11 +128,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p style={{ marginTop: 20, fontSize: 13, color: "#6b7280", textAlign: "center" }}>
+        <p style={{ marginTop: 20, fontSize: 13, color: "#aaa", textAlign: "center" }}>
           {mode === "login" ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
-            style={{ background: "none", border: "none", color: "#4f46e5", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
+            style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
           >
             {mode === "login" ? "Sign up" : "Sign in"}
           </button>
@@ -145,17 +146,18 @@ const labelStyle = {
   display: "block",
   fontSize: 13,
   fontWeight: 500,
-  color: "#374151",
+  color: "#aaa",
   marginBottom: 6,
 };
 
 const inputStyle = {
   width: "100%",
   padding: "9px 12px",
-  border: "1px solid #d1d5db",
+  border: "1px solid #444",
   borderRadius: 8,
   fontSize: 14,
-  color: "#111",
+  color: "#fff",
+  background: "#333",
   outline: "none",
   boxSizing: "border-box",
 };
