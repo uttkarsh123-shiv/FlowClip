@@ -7,18 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 export default function LoginPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
-    if (!loading && user) {
-      router.replace("/");
-    }
+    if (!loading && user) router.replace("/");
   }, [user, loading, router]);
 
   const handleSubmit = async (e) => {
@@ -26,11 +23,8 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
     try {
-      if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(email, password, name);
-      }
+      if (mode === "login") await login(email, password);
+      else await register(email, password, name);
       router.push("/");
     } catch (err) {
       setError(err.message);
@@ -39,137 +33,95 @@ export default function LoginPage() {
     }
   };
 
-  if (loading) return null;
-  if (user) return null;
+  if (loading || user) return null;
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#1f1f1f",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    }}>
-      <div style={{
-        background: "#2a2a2a",
-        border: "1px solid #333",
-        borderRadius: 12,
-        padding: "36px 40px",
-        width: "100%",
-        maxWidth: 400,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
-      }}>
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      {/* Left — green panel */}
+      <div style={{ width: "45%", background: "#10b981", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px", position: "relative", overflow: "hidden" }}>
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 8,
-            background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 18, fontWeight: 600, color: "#fff",
-          }}>
-            L
-          </div>
-          <span style={{ fontSize: 20, fontWeight: 600, color: "#fff" }}>FlowClip</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 32, height: 32, background: "#000", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 16, color: "#fff" }}>F</div>
+          <span style={{ fontWeight: 900, fontSize: 18, color: "#fff" }}>FlowClip</span>
         </div>
 
-        <h1 style={{ fontSize: 18, fontWeight: 600, color: "#fff", marginBottom: 4 }}>
-          {mode === "login" ? "Welcome back" : "Create account"}
-        </h1>
-        <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24 }}>
-          {mode === "login" ? "Sign in to your account" : "Start capturing your clips"}
-        </p>
+        {/* Tagline */}
+        <div>
+          <h2 style={{ fontSize: 48, fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: "-1px", marginBottom: 20 }}>
+            Capture ideas without breaking flow
+          </h2>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.8)", lineHeight: 1.6, fontWeight: 400 }}>
+            One keystroke. Everything saved. Always synced.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          {mode === "register" && (
-            <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                style={inputStyle}
-              />
+        {/* Decorative clip cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {["Text captured", "Link saved", "Screenshot done"].map((t, i) => (
+            <div key={t} style={{ background: "rgba(255,255,255,0.15)", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />
+              <span style={{ fontSize: 14, color: "#fff", fontWeight: 500 }}>{t}</span>
             </div>
-          )}
+          ))}
+        </div>
+      </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              style={inputStyle}
-            />
-          </div>
+      {/* Right — form */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "#fff" }}>
+        <div style={{ width: "100%", maxWidth: 380 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 900, color: "#000", marginBottom: 8, letterSpacing: "-0.5px" }}>
+            {mode === "login" ? "Welcome back" : "Create account"}
+          </h1>
+          <p style={{ fontSize: 15, color: "#666", marginBottom: 36, fontWeight: 400 }}>
+            {mode === "login" ? "Sign in to your FlowClip account" : "Start capturing smarter today"}
+          </p>
 
-          <div style={{ marginBottom: 24 }}>
-            <label style={labelStyle}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              style={inputStyle}
-            />
-          </div>
+          <form onSubmit={handleSubmit}>
+            {mode === "register" && (
+              <div style={{ marginBottom: 18 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#000", marginBottom: 6 }}>Full name</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe"
+                  style={{ width: "100%", padding: "11px 14px", border: "1px solid #e5e5e5", borderRadius: 8, fontSize: 14, color: "#000", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                  onFocus={(e) => { e.target.style.borderColor = "#10b981"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; }} />
+              </div>
+            )}
 
-          {error && (
-            <p style={{ fontSize: 13, color: "#ff6b6b", marginBottom: 16 }}>{error}</p>
-          )}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#000", marginBottom: 6 }}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required
+                style={{ width: "100%", padding: "11px 14px", border: "1px solid #e5e5e5", borderRadius: 8, fontSize: 14, color: "#000", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                onFocus={(e) => { e.target.style.borderColor = "#10b981"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; }} />
+            </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: isLoading ? "#4c4f7f" : "#6366f1",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: isLoading ? "not-allowed" : "pointer",
-            }}
-          >
-            {isLoading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
-          </button>
-        </form>
+            <div style={{ marginBottom: 28 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#000", marginBottom: 6 }}>Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required
+                style={{ width: "100%", padding: "11px 14px", border: "1px solid #e5e5e5", borderRadius: 8, fontSize: 14, color: "#000", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                onFocus={(e) => { e.target.style.borderColor = "#10b981"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; }} />
+            </div>
 
-        <p style={{ marginTop: 20, fontSize: 13, color: "#aaa", textAlign: "center" }}>
-          {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-          <button
-            onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
-            style={{ background: "none", border: "none", color: "#6366f1", cursor: "pointer", fontSize: 13, fontWeight: 500 }}
-          >
-            {mode === "login" ? "Sign up" : "Sign in"}
-          </button>
-        </p>
+            {error && <p style={{ fontSize: 13, color: "#dc2626", marginBottom: 16, fontWeight: 500 }}>{error}</p>}
+
+            <button type="submit" disabled={isLoading}
+              style={{ width: "100%", padding: "12px", background: isLoading ? "#ccc" : "#10b981", color: "#fff", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s" }}
+              onMouseEnter={(e) => { if (!isLoading) e.target.style.background = "#059669"; }}
+              onMouseLeave={(e) => { if (!isLoading) e.target.style.background = "#10b981"; }}>
+              {isLoading ? "Please wait..." : mode === "login" ? "Sign in" : "Create account"}
+            </button>
+          </form>
+
+          <p style={{ marginTop: 24, fontSize: 14, color: "#666", textAlign: "center" }}>
+            {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+            <button onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(""); }}
+              style={{ background: "none", border: "none", color: "#10b981", cursor: "pointer", fontSize: 14, fontWeight: 700 }}>
+              {mode === "login" ? "Sign up" : "Sign in"}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
-const labelStyle = {
-  display: "block",
-  fontSize: 13,
-  fontWeight: 500,
-  color: "#aaa",
-  marginBottom: 6,
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "9px 12px",
-  border: "1px solid #444",
-  borderRadius: 8,
-  fontSize: 14,
-  color: "#fff",
-  background: "#333",
-  outline: "none",
-  boxSizing: "border-box",
-};
