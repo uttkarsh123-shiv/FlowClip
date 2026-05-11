@@ -195,6 +195,10 @@ function getClipPreview(content) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
+document.getElementById("open-dashboard").addEventListener("click", () => {
+  chrome.tabs.create({ url: "https://flowclip.app" });
+});
+
 async function init() {
   const accessToken = await getValidAccessToken();
   if (accessToken) {

@@ -85,28 +85,32 @@ export default function Home() {
               See how it works
             </button>
           </div>
+        </section>
 
-          {/* White card — seamless bleed */}
-          <div style={{ maxWidth: 1100, margin: "0 auto", background: "#fff", borderRadius: "20px 20px 0 0", padding: "48px 56px 72px", boxShadow: "0 -8px 48px rgba(0,0,0,0.1)", position: "relative", zIndex: 2 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 28, textAlign: "left" }}>Extension Preview</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-              <div style={{ background: "#f9fafb", borderRadius: 14, padding: "32px 36px", border: "1px solid #f0f0f0", textAlign: "left" }}>
-                <span style={{ fontSize: 11, fontWeight: 800, background: "#000", color: "#fff", borderRadius: 5, padding: "4px 10px", letterSpacing: "0.5px", fontFamily: F }}>TEXT</span>
-                <p style={{ fontSize: 16, color: "#111", marginTop: 18, lineHeight: 1.65, fontWeight: 500, fontFamily: F }}>
-                  "The best productivity tool is the one that gets out of your way."
-                </p>
-                <p style={{ fontSize: 13, color: "#aaa", marginTop: 14, fontFamily: F }}>medium.com · just now</p>
-              </div>
-              <div style={{ background: "#f9fafb", borderRadius: 14, padding: "32px 36px", border: "1px solid #f0f0f0", textAlign: "left" }}>
-                <span style={{ fontSize: 11, fontWeight: 800, background: "#10b981", color: "#fff", borderRadius: 5, padding: "4px 10px", letterSpacing: "0.5px", fontFamily: F }}>LINK</span>
-                <p style={{ fontSize: 16, color: "#0066cc", marginTop: 18, lineHeight: 1.65, fontWeight: 600, wordBreak: "break-all", fontFamily: F }}>
-                  https://github.com/trending
-                </p>
-                <p style={{ fontSize: 13, color: "#aaa", marginTop: 14, fontFamily: F }}>github.com · 2 min ago</p>
+        {/* Split green/white background with card floating across the boundary */}
+        <div style={{ position: "relative", background: "linear-gradient(to bottom, #10b981 50%, #fff 50%)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 64px" }}>
+            <div style={{ background: "#fff", borderRadius: 20, padding: "48px 56px", boxShadow: "0 4px 40px rgba(0,0,0,0.1)" }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 28, textAlign: "left" }}>Extension Preview</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                <div style={{ background: "#f9fafb", borderRadius: 14, padding: "32px 36px", border: "1px solid #f0f0f0", textAlign: "left" }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, background: "#000", color: "#fff", borderRadius: 5, padding: "4px 10px", letterSpacing: "0.5px", fontFamily: F }}>TEXT</span>
+                  <p style={{ fontSize: 16, color: "#111", marginTop: 18, lineHeight: 1.65, fontWeight: 500, fontFamily: F }}>
+                    "The best productivity tool is the one that gets out of your way."
+                  </p>
+                  <p style={{ fontSize: 13, color: "#aaa", marginTop: 14, fontFamily: F }}>medium.com · just now</p>
+                </div>
+                <div style={{ background: "#f9fafb", borderRadius: 14, padding: "32px 36px", border: "1px solid #f0f0f0", textAlign: "left" }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, background: "#10b981", color: "#fff", borderRadius: 5, padding: "4px 10px", letterSpacing: "0.5px", fontFamily: F }}>LINK</span>
+                  <p style={{ fontSize: 16, color: "#0066cc", marginTop: 18, lineHeight: 1.65, fontWeight: 600, wordBreak: "break-all", fontFamily: F }}>
+                    https://github.com/trending
+                  </p>
+                  <p style={{ fontSize: 13, color: "#aaa", marginTop: 14, fontFamily: F }}>github.com · 2 min ago</p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* ── FEATURES ── */}
         <section style={{ background: "#fff", padding: "120px 64px" }}>
@@ -115,17 +119,17 @@ export default function Home() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
               {[
                 {
-                  iconBg: "#fff7e6", iconColor: "#f59e0b", title: "One keystroke",
+                  iconBg: "#fff7e6", title: "One keystroke",
                   desc: "Shift+S captures anything on the page. No menus, no friction, no interruption.",
                   svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 },
                 {
-                  iconBg: "#e8f4fd", iconColor: "#3b82f6", title: "Instant sync",
+                  iconBg: "#e8f4fd", title: "Instant sync",
                   desc: "Your clips appear on every device the moment you save them. Always up to date.",
                   svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 },
                 {
-                  iconBg: "#fce8f3", iconColor: "#ec4899", title: "Auto-organized",
+                  iconBg: "#fce8f3", title: "Auto-organized",
                   desc: "Text, links, screenshots sorted automatically. Search finds anything in seconds.",
                   svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 },
