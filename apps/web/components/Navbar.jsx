@@ -25,7 +25,7 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       padding: "0 48px",
       background: "#fff",
       borderBottom: "1px solid #f0f0f0",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "var(--font-nunito), 'Nunito', sans-serif",
       height: 80,
       position: "sticky",
       top: 0,

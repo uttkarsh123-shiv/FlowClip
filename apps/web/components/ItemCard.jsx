@@ -1,6 +1,7 @@
 "use client";
 import { useQuery, useMutation } from "convex/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../../../convex/_generated/api";
 import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
@@ -13,34 +14,75 @@ const typeBadge = {
   image: { bg: "#6366f1",  color: "#fff" },
 };
 
+// Dropdown rendered via portal — zero layout impact
+function KebabMenu({ anchorRef, onDelete, onClose }) {
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + window.scrollY + 6,
+        left: rect.right + window.scrollX - 120,
+      });
+    }
+  }, [anchorRef]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.target.closest(".kebab-portal")) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="kebab-portal" style={{
+      position: "absolute",
+      top: pos.top,
+      left: pos.left,
+      background: "#fff",
+      border: "1px solid #e5e5e5",
+      borderRadius: 8,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+      zIndex: 9999,
+      minWidth: 120,
+      overflow: "hidden",
+    }}>
+      <button
+        onClick={onDelete}
+        style={{ display: "block", width: "100%", padding: "11px 16px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#dc2626", fontWeight: 600 }}
+        onMouseEnter={(e) => { e.target.style.background = "#fef2f2"; }}
+        onMouseLeave={(e) => { e.target.style.background = "none"; }}
+      >
+        Delete
+      </button>
+    </div>,
+    document.body
+  );
+}
+
 export default function ItemCard({ activeType, searchQuery = "", onCountChange }) {
   const { user } = useAuth();
   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [hoveredUrl, setHoveredUrl] = useState(null);
+  const kebabRefs = useRef({});
   const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest(".kebab-container")) setOpenMenuId(null);
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  const filteredItems = items
-    ?.filter((item) => activeType === "all" || item.type === activeType)
-    ?.filter((item) => !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase()));
 
   useEffect(() => {
     if (items && onCountChange) onCountChange(items.length);
   }, [items?.length]);
 
+  const filteredItems = items
+    ?.filter((item) => activeType === "all" || item.type === activeType)
+    ?.filter((item) => !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase()));
+
   const handleDelete = (id) => { deleteItem({ id }); setOpenMenuId(null); };
 
   return (
-    <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-nunito), 'Nunito', sans-serif" }}>
 
       {!items && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
@@ -75,22 +117,21 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                 <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase", background: badge.bg, color: badge.color, borderRadius: 5, padding: "5px 10px" }}>
                   {typeLabel[item.type] ?? "Clip"}
                 </span>
-                <div className="kebab-container" style={{ position: "relative" }}>
-                  <button onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
+                <div style={{ position: "relative" }}>
+                  <button
+                    ref={(el) => { if (el) kebabRefs.current[item._id] = el; }}
+                    onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
                     style={{ background: "none", border: "none", padding: 6, cursor: "pointer", color: "#ccc", transition: "all 0.2s" }}
                     onMouseEnter={(e) => { e.target.style.color = "#999"; }}
                     onMouseLeave={(e) => { e.target.style.color = "#ccc"; }}>
                     <KebabIcon />
                   </button>
                   {openMenuId === item._id && (
-                    <div style={{ position: "absolute", right: 0, bottom: "100%", background: "#fff", border: "1px solid #e5e5e5", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", zIndex: 10, minWidth: 110, marginBottom: 6, overflow: "hidden" }}>
-                      <button onClick={() => handleDelete(item._id)}
-                        style={{ display: "block", width: "100%", padding: "10px 14px", border: "none", background: "none", textAlign: "left", cursor: "pointer", fontSize: 13, color: "#dc2626", fontWeight: 600 }}
-                        onMouseEnter={(e) => { e.target.style.background = "#fef2f2"; }}
-                        onMouseLeave={(e) => { e.target.style.background = "none"; }}>
-                        Delete
-                      </button>
-                    </div>
+                    <KebabMenu
+                      anchorRef={{ current: kebabRefs.current[item._id] }}
+                      onDelete={() => handleDelete(item._id)}
+                      onClose={() => setOpenMenuId(null)}
+                    />
                   )}
                 </div>
               </div>

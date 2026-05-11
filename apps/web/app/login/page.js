@@ -36,7 +36,7 @@ export default function LoginPage() {
   if (loading || user) return null;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "var(--font-nunito), 'Nunito', sans-serif" }}>
       {/* Left — green panel */}
       <div style={{ width: "45%", background: "#10b981", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "64px", position: "relative", overflow: "hidden" }}>
         {/* Logo */}

@@ -16,7 +16,7 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
       background: "#fff",
       borderRight: "1px solid #f0f0f0",
       padding: "24px 16px",
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      fontFamily: "var(--font-nunito), 'Nunito', sans-serif",
     }}>
       {NAV_ITEMS.map((item) => {
         const isActive = active === item.type;
