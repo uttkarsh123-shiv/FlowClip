@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import ItemCard from "@/components/ItemCard";
 import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/lib/auth";
+import AuthModal from "@/components/AuthModal";
 
 const F = "var(--font-nunito), 'Nunito', sans-serif";
 
@@ -17,6 +18,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [clipCount, setClipCount] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
+
+  const [authModal, setAuthModel] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -55,8 +58,8 @@ export default function Home() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <button onClick={() => router.push("/login")} style={{ background: "none", border: "2px solid rgba(255,255,255,0.5)", borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", padding: "9px 26px", fontFamily: F }}>Sign in</button>
-            <button onClick={() => router.push("/login")} style={{ background: "#000", border: "none", borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", padding: "9px 26px", fontFamily: F }}>Sign up</button>
+            <button onClick={() => setAuthModel("login")} style={{ background: "none", border: "2px solid rgba(255,255,255,0.5)", borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", padding: "9px 26px", fontFamily: F }}>Sign in</button>
+            <button onClick={() => setAuthModel("register")} style={{ background: "#000", border: "none", borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", padding: "9px 26px", fontFamily: F }}>Sign up</button>
           </div>
         </nav>
 
@@ -137,34 +140,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── HOW IT WORKS ── */}
-        <section style={{ background: "#f7f7f7", padding: "120px 64px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <h2 style={{ fontSize: 56, fontWeight: 900, color: "#000", marginBottom: 64, letterSpacing: "-2px", fontFamily: F }}>Three steps</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 56 }}>
-              {[
-                {
-                  n: "01", title: "Install", desc: "Add FlowClip to Chrome. Takes under 10 seconds.",
-                  svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                },
-                {
-                  n: "02", title: "Capture", desc: "Press Shift+S on any page to save text, links or screenshots.",
-                  svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                },
-                {
-                  n: "03", title: "Access", desc: "Open your dashboard. Everything is there, sorted and searchable.",
-                  svg: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                },
-              ].map((s) => (
-                <div key={s.n} style={{ borderTop: "3px solid #10b981", paddingTop: 32 }}>
-                  <div style={{ width: 44, height: 44, background: "#ecfdf5", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>{s.svg}</div>
-                  <h3 style={{ fontSize: 26, fontWeight: 900, color: "#000", marginBottom: 12, fontFamily: F }}>{s.title}</h3>
-                  <p style={{ fontSize: 15, color: "#666", lineHeight: 1.65, fontWeight: 500, fontFamily: F }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ── WHY FLOWCLIP — Payard "Expert Consulting" layout ── */}
         <section style={{ background: "#fff", padding: "120px 64px" }}>
@@ -240,6 +215,8 @@ export default function Home() {
             ))}
           </div>
         </footer>
+
+        {authModal && <AuthModal mode={authModal} onClose={() => setAuthModel(null)} />}
       </div>
     );
   }
