@@ -23,7 +23,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/login");
+    router.replace("/");
   };
 
   if (loading) return null;
@@ -78,10 +78,10 @@ export default function Home() {
           </h2>
 
           <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 72 }}>
-            <button onClick={() => router.push("/login")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
+            <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
               Add to Chrome — Free
             </button>
-            <button onClick={() => router.push("/login")} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
+            <button onClick={() => setAuthModel("login")} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
               See how it works
             </button>
           </div>
@@ -181,7 +181,7 @@ export default function Home() {
                   <p style={{ fontSize: 16, fontWeight: 800, color: "#000", margin: "0 0 4px", fontFamily: F }}>Ready to start?</p>
                   <p style={{ fontSize: 14, color: "#065f46", margin: 0, fontWeight: 500, fontFamily: F }}>Free forever. No credit card.</p>
                 </div>
-                <button onClick={() => router.push("/login")} style={{ background: "#10b981", border: "none", borderRadius: 32, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", padding: "11px 26px", whiteSpace: "nowrap", fontFamily: F }}>
+                <button onClick={() => setAuthModel("register")} style={{ background: "#10b981", border: "none", borderRadius: 32, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", padding: "11px 26px", whiteSpace: "nowrap", fontFamily: F }}>
                   Get Started
                 </button>
               </div>
@@ -197,7 +197,7 @@ export default function Home() {
         }}>
           <h2 style={{ fontSize: 72, fontWeight: 900, color: "#fff", marginBottom: 20, letterSpacing: "-2px", fontFamily: F }}>Stop losing ideas</h2>
           <p style={{ fontSize: 20, color: "rgba(255,255,255,0.85)", marginBottom: 48, fontWeight: 600, fontFamily: F }}>Free forever. No credit card. Add to Chrome in seconds.</p>
-          <button onClick={() => router.push("/login")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "18px 56px", fontFamily: F }}>
+          <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "18px 56px", fontFamily: F }}>
             Get Started Free
           </button>
         </section>
