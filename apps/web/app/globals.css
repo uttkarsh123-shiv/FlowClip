@@ -12,7 +12,7 @@ html, body {
   width: 100%;
   overflow-x: hidden;
   font-size: 16px;
-  font-family: var(--font-nunito), 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-sans), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   color: #111;
 }

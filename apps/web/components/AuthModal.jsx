@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { login, register } from "@/lib/auth";
 
-const F = "var(--font-nunito), 'Nunito', sans-serif";
+const F = "var(--font-sans), 'Plus Jakarta Sans', sans-serif";
 
 export default function AuthModal({ onClose, mode = "login" }) {
   const [currentMode, setCurrentMode] = useState(mode);

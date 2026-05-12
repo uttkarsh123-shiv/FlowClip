@@ -82,7 +82,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const handleDelete = (id) => { deleteItem({ id }); setOpenMenuId(null); };
 
   return (
-    <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-nunito), 'Nunito', sans-serif" }}>
+    <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
 
       {!items && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
