@@ -1,49 +1,65 @@
 "use client";
 import { useState, useEffect } from "react";
-import { getAccessToken, getRefreshToken, getValidAccessToken, clearTokens } from "@/lib/auth";
+import { getRefreshToken, getValidAccessToken, clearTokens } from "@/lib/auth";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          // No tokens → user not authenticated
-          setUser(false);
-          setLoading(false);
-          return;
-        }
+  async function checkAuth() {
+    try {
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        setUser(false);
+        setLoading(false);
+        return;
+      }
 
-        // Get a valid access token (refreshes if expired)
-        const accessToken = await getValidAccessToken();
+      const accessToken = await getValidAccessToken();
 
-        // Fetch current user
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/auth/me`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/auth/me`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
 
-        if (!res.ok) {
-          clearTokens();
-          setUser(false);
-          setLoading(false);
-          return;
-        }
-
-        const userData = await res.json();
-        setUser(userData);
-      } catch {
+      if (!res.ok) {
         clearTokens();
         setUser(false);
-      } finally {
         setLoading(false);
+        return;
       }
-    }
 
+      const userData = await res.json();
+      setUser(userData);
+    } catch {
+      clearTokens();
+      setUser(false);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     checkAuth();
+
+    // Re-check whenever localStorage changes (login/logout from same tab)
+    const handleStorage = () => checkAuth();
+    window.addEventListener("storage", handleStorage);
+
+    // Also poll every 500ms briefly after mount to catch same-tab login
+    const interval = setInterval(() => {
+      const token = getRefreshToken();
+      if (token && !user) checkAuth();
+    }, 500);
+
+    // Stop polling after 5s
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, []);
 
   return { user, loading };

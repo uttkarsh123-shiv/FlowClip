@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { login, register } from "@/lib/auth";
 
 const F = "var(--font-sans), 'Plus Jakarta Sans', sans-serif";
 
 export default function AuthModal({ onClose, mode = "login" }) {
+  const router = useRouter();
   const [currentMode, setCurrentMode] = useState(mode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,9 @@ export default function AuthModal({ onClose, mode = "login" }) {
       } else {
         await register(email, password, name);
       }
+      window.dispatchEvent(new Event("storage"));
       onClose();
+      router.push("/dashboard");
     } catch (err) {
       setError(err.message); // was setCurrentMode — bug fixed
     } finally {

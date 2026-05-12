@@ -1,32 +1,24 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Sidebar from "@/components/Sidebar";
-import ItemCard from "@/components/ItemCard";
-import { useAuth } from "@/hooks/useAuth";
-import { logout } from "@/lib/auth";
 import AuthModal from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
+import HowItWorks from "@/components/HowItWorks";
 
 const F = "var(--font-sans), 'Plus Jakarta Sans', sans-serif";
 
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [activeType, setActiveType] = useState("all");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [clipCount, setClipCount] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
-
-  const [authModal, setAuthModel] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/");
-  };
+  const [authModal, setAuthModel] = useState(null);
 
   if (loading) return null;
+
+  if (user) {
+    router.replace("/dashboard");
+    return null;
+  }
 
   if (!user) {
     return (
@@ -122,6 +114,7 @@ export default function Home() {
           </div>
         </section>
 
+        <HowItWorks />
 
         {/* ── WHY FLOWCLIP — Payard "Expert Consulting" layout ── */}
         <section style={{ background: "#fff", padding: "120px 64px" }}>
