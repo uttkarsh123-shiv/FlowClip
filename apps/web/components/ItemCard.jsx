@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeBadge = {
   text:  { bg: "#000",     color: "#fff" },
-  link:  { bg: "#10b981",  color: "#fff" },
+  link:  { bg: "#38d091",  color: "#fff" },
   image: { bg: "#6366f1",  color: "#fff" },
 };
 
@@ -109,7 +109,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               padding: "28px 28px",
               transition: "all 0.2s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#10b981"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(16, 185, 129, 0.08)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#38d091"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(16, 185, 129, 0.08)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#f0f0f0"; e.currentTarget.style.boxShadow = "none"; }}>
 
               {/* Header */}
@@ -142,7 +142,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                   style={{ width: "100%", borderRadius: 8, maxHeight: 200, objectFit: "cover", cursor: "pointer", display: "block" }} />
               ) : item.type === "link" ? (
                 <a href={item.content} target="_blank" rel="noreferrer"
-                  style={{ display: "block", fontSize: 13, color: "#10b981", wordBreak: "break-all", lineHeight: 1.6, textDecoration: "none", fontWeight: 500 }}
+                  style={{ display: "block", fontSize: 13, color: "#38d091", wordBreak: "break-all", lineHeight: 1.6, textDecoration: "none", fontWeight: 500 }}
                   onMouseEnter={(e) => { e.target.style.textDecoration = "underline"; }}
                   onMouseLeave={(e) => { e.target.style.textDecoration = "none"; }}>
                   {item.content}

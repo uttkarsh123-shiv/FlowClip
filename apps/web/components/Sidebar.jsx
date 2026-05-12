@@ -41,7 +41,7 @@ export default function Sidebar({ active = "all", onChange, isOpen = false }) {
             }}
             onMouseEnter={(e) => { if (!isActive) { e.target.style.background = "#f5f5f5"; e.target.style.color = "#000"; } }}
             onMouseLeave={(e) => { if (!isActive) { e.target.style.background = "transparent"; e.target.style.color = "#666"; } }}>
-            <span style={{ color: isActive ? "#10b981" : "#ccc", flexShrink: 0 }}>{item.icon}</span>
+            <span style={{ color: isActive ? "#38d091" : "#ccc", flexShrink: 0 }}>{item.icon}</span>
             {item.label}
           </button>
         );

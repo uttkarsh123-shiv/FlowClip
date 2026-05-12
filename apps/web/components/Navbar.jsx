@@ -40,7 +40,7 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
 
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 10, background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" }}>F</div>
+        <div style={{ width: 40, height: 40, borderRadius: 10, background: "#38d091", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" }}>F</div>
         <span style={{ fontSize: 18, fontWeight: 900, color: "#000" }}>FlowClip</span>
       </div>
 
@@ -52,7 +52,7 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
           </span>
           <input type="text" placeholder="Search clips..." value={searchQuery} onChange={(e) => onSearch?.(e.target.value)}
             style={{ width: "100%", padding: "11px 40px 11px 42px", background: "#f5f5f5", border: "1px solid #e5e5e5", borderRadius: 10, fontSize: 15, color: "#000", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
-            onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.borderColor = "#10b981"; }}
+            onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.borderColor = "#38d091"; }}
             onBlur={(e) => { e.target.style.background = "#f5f5f5"; e.target.style.borderColor = "#e5e5e5"; }} />
           {searchQuery && (
             <button onClick={() => onSearch?.("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#ccc", display: "flex", padding: 4 }}>
@@ -67,14 +67,14 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       <span style={{ fontSize: 14, color: "#999", fontWeight: 600 }}>{clipCount ?? 0} clips</span>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+        <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#38d091", display: "inline-block" }} />
         <span style={{ fontSize: 13, color: "#999" }}>live</span>
       </div>
 
       {/* Avatar */}
       <div ref={menuRef} style={{ position: "relative" }}>
         <button onClick={() => setMenuOpen((o) => !o)}
-          style={{ width: 44, height: 44, borderRadius: "50%", background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", cursor: "pointer", border: "none" }}>
+          style={{ width: 44, height: 44, borderRadius: "50%", background: "#38d091", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff", cursor: "pointer", border: "none" }}>
           {initial}
         </button>
 

@@ -36,7 +36,7 @@ export default function Home() {
         <nav style={{
           padding: "0 64px", height: 76,
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "#10b981", position: "sticky", top: 0, zIndex: 50,
+          background: "#38d091", position: "sticky", top: 0, zIndex: 50,
           backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}>
@@ -49,7 +49,7 @@ export default function Home() {
           <div style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.18)", borderRadius: 40, padding: "6px 8px", gap: 4 }}>
             {["Features", "How it works", "FAQ"].map((item, i) => (
               <button key={item} style={{
-                background: i === 2 ? "#10b981" : "transparent",
+                background: i === 2 ? "#38d091" : "transparent",
                 border: i === 2 ? "1px solid rgba(255,255,255,0.5)" : "none",
                 borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15,
                 cursor: "pointer", padding: "8px 20px", fontFamily: F,
@@ -65,7 +65,7 @@ export default function Home() {
 
         {/* ── HERO ── */}
         <section style={{
-          background: "#10b981", padding: "100px 4px 0", textAlign: "center",
+          background: "#38d091", padding: "100px 4px 0", textAlign: "center",
           backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px)",
           backgroundSize: "24px 24px", overflow: "hidden",
         }}>
@@ -78,7 +78,7 @@ export default function Home() {
           </h2>
 
           <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 72 }}>
-            <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
+            <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#38d091", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
               Add to Chrome — Free
             </button>
             <button onClick={() => setAuthModel("login")} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.45)", borderRadius: 12, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", padding: "16px 44px", fontFamily: F }}>
@@ -163,7 +163,7 @@ export default function Home() {
                   <p style={{ fontSize: 20, fontWeight: 800, color: "#000", margin: "0 0 6px", fontFamily: F }}>Ready to start?</p>
                   <p style={{ fontSize: 16, color: "#065f46", margin: 0, fontWeight: 500, fontFamily: F }}>Free forever. No credit card.</p>
                 </div>
-                <button onClick={() => setAuthModel("register")} style={{ background: "#10b981", border: "none", borderRadius: 32, color: "#fff", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "14px 32px", whiteSpace: "nowrap", fontFamily: F }}>
+                <button onClick={() => setAuthModel("register")} style={{ background: "#38d091", border: "none", borderRadius: 32, color: "#fff", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "14px 32px", whiteSpace: "nowrap", fontFamily: F }}>
                   Get Started
                 </button>
               </div>
@@ -173,13 +173,13 @@ export default function Home() {
 
         {/* ── CTA ── */}
         <section style={{
-          background: "#10b981", padding: "120px 64px", textAlign: "center",
+          background: "#38d091", padding: "120px 64px", textAlign: "center",
           backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px)",
           backgroundSize: "24px 24px",
         }}>
           <h2 style={{ fontSize: 96, fontWeight: 900, color: "#fff", marginBottom: 20, letterSpacing: "-2px", fontFamily: F }}>Stop losing ideas</h2>
           <p style={{ fontSize: 22, color: "rgba(255,255,255,0.85)", marginBottom: 48, fontWeight: 600, fontFamily: F }}>Free forever. No credit card. Add to Chrome in seconds.</p>
-          <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#10b981", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "18px 56px", fontFamily: F }}>
+          <button onClick={() => setAuthModel("register")} style={{ background: "#fff", border: "none", borderRadius: 12, color: "#38d091", fontWeight: 800, fontSize: 17, cursor: "pointer", padding: "18px 56px", fontFamily: F }}>
             Get Started Free
           </button>
         </section>
@@ -187,7 +187,7 @@ export default function Home() {
         {/* ── FOOTER ── */}
         <footer style={{ background: "#000", padding: "56px 64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 30, height: 30, background: "#10b981", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff", fontFamily: F }}>F</div>
+            <div style={{ width: 30, height: 30, background: "#38d091", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff", fontFamily: F }}>F</div>
             <span style={{ fontWeight: 900, fontSize: 17, color: "#fff", fontFamily: F }}>FlowClip</span>
           </div>
           <p style={{ fontSize: 15, color: "#555", margin: 0, fontFamily: F }}>© 2026 FlowClip. All rights reserved.</p>
@@ -230,7 +230,7 @@ const SLIDES = [
     heading: "Browsing something useful?",
     desc: "Press Shift+S and the link is saved. No copy-paste, no tab switching. Just keep reading.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#10b981", time: "just now" },
+      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "just now" },
       { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "4 min ago" },
       { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
     ],
@@ -241,7 +241,7 @@ const SLIDES = [
     heading: "Found a quote worth keeping?",
     desc: "Select any text on any page and press Shift+S. It's saved with the source URL automatically.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#10b981", time: "4 min ago" },
+      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
       { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "just now" },
       { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
     ],
@@ -252,7 +252,7 @@ const SLIDES = [
     heading: "See something you need to remember?",
     desc: "Press Shift+S twice to capture a screenshot of the page. Stored and synced instantly.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#10b981", time: "4 min ago" },
+      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
       { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "9 min ago" },
       { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "just now" },
     ],
@@ -278,19 +278,19 @@ function ExtensionPreview({ F }) {
   const current = SLIDES[slide];
 
   return (
-    <div style={{ position: "relative", background: "linear-gradient(to bottom, #10b981 50%, #fff 50%)" }}>
+    <div style={{ position: "relative", background: "linear-gradient(to bottom, #38d091 50%, #fff 50%)", backgroundImage: "radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px), linear-gradient(to bottom, #38d091 50%, #fff 50%)", backgroundSize: "24px 24px, 100% 100%" }}>
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 64px" }}>
-        <div style={{ background: "#fff", borderRadius: 20, padding: "40px 56px 48px", boxShadow: "0 4px 40px rgba(0,0,0,0.12)", display: "flex", gap: 56, alignItems: "center" }}>
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 64px" }}>
+        <div style={{ background: "#fff", borderRadius: 24, padding: "64px 80px 72px", boxShadow: "0 8px 60px rgba(0,0,0,0.14)", display: "flex", gap: 80, alignItems: "center" }}>
 
           {/* Left — changes per slide */}
           <div style={{ flex: 1, opacity: fading ? 0 : 1, transition: "opacity 0.3s ease" }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 14, fontFamily: F }}>{current.label}</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "#38d091", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 14, fontFamily: F }}>{current.label}</p>
             <h3 style={{ fontSize: 36, fontWeight: 900, color: "#000", letterSpacing: "-0.5px", marginBottom: 14, lineHeight: 1.2, fontFamily: F }}>{current.heading}</h3>
             <p style={{ fontSize: 18, color: "#666", lineHeight: 1.7, fontWeight: 500, fontFamily: F }}>{current.desc}</p>
 
@@ -300,7 +300,7 @@ function ExtensionPreview({ F }) {
                 <button key={i} onClick={() => setSlide(i)} style={{
                   width: i === slide ? 24 : 8, height: 8,
                   borderRadius: 4, border: "none", cursor: "pointer",
-                  background: i === slide ? "#10b981" : "#e5e5e5",
+                  background: i === slide ? "#38d091" : "#e5e5e5",
                   transition: "all 0.3s ease", padding: 0,
                 }} />
               ))}
@@ -313,7 +313,7 @@ function ExtensionPreview({ F }) {
             {/* Header */}
             <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, background: "#10b981", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff", fontFamily: F }}>F</div>
+                <div style={{ width: 36, height: 36, background: "#38d091", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff", fontFamily: F }}>F</div>
                 <span style={{ fontSize: 18, fontWeight: 900, color: "#000", fontFamily: F }}>FlowClip</span>
               </div>
               <span style={{ fontSize: 14, color: "#999", background: "#f5f5f5", padding: "5px 12px", borderRadius: 20, fontWeight: 600, fontFamily: F }}>3 clips</span>
@@ -340,7 +340,7 @@ function ExtensionPreview({ F }) {
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: clip.iconBg, border: "1px solid #e5e5e5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: clip.iconColor, flexShrink: 0, fontFamily: F }}>{clip.icon}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: isActive ? 700 : 600, color: "#000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: F }}>{clip.text}</div>
-                      <div style={{ fontSize: 13, color: isActive ? "#10b981" : "#aaa", marginTop: 4, fontWeight: isActive ? 600 : 400, fontFamily: F }}>{clip.time}</div>
+                      <div style={{ fontSize: 13, color: isActive ? "#38d091" : "#aaa", marginTop: 4, fontWeight: isActive ? 600 : 400, fontFamily: F }}>{clip.time}</div>
                     </div>
                   </div>
                 );
@@ -349,7 +349,7 @@ function ExtensionPreview({ F }) {
 
             {/* Dashboard button */}
             <div style={{ padding: "14px 12px" }}>
-              <div style={{ background: "#10b981", borderRadius: 10, padding: "13px", textAlign: "center", fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: F }}>Open Dashboard</div>
+              <div style={{ background: "#38d091", borderRadius: 10, padding: "13px", textAlign: "center", fontSize: 15, fontWeight: 800, color: "#fff", fontFamily: F }}>Open Dashboard</div>
             </div>
           </div>
           </div>

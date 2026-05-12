@@ -72,7 +72,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 32 }}>
-          <div style={{ width: 32, height: 32, background: "#10b981", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff" }}>F</div>
+          <div style={{ width: 32, height: 32, background: "#38d091", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff" }}>F</div>
           <span style={{ fontWeight: 900, fontSize: 16, color: "#000" }}>FlowClip</span>
         </div>
 
@@ -93,7 +93,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 style={inputStyle}
-                onFocus={(e) => { e.target.style.borderColor = "#10b981"; e.target.style.background = "#fff"; }}
+                onFocus={(e) => { e.target.style.borderColor = "#38d091"; e.target.style.background = "#fff"; }}
                 onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; e.target.style.background = "#f9fafb"; }}
               />
             </div>
@@ -108,7 +108,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
               onChange={(e) => setEmail(e.target.value)}
               required
               style={inputStyle}
-              onFocus={(e) => { e.target.style.borderColor = "#10b981"; e.target.style.background = "#fff"; }}
+              onFocus={(e) => { e.target.style.borderColor = "#38d091"; e.target.style.background = "#fff"; }}
               onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; e.target.style.background = "#f9fafb"; }}
             />
           </div>
@@ -122,7 +122,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               style={inputStyle}
-              onFocus={(e) => { e.target.style.borderColor = "#10b981"; e.target.style.background = "#fff"; }}
+              onFocus={(e) => { e.target.style.borderColor = "#38d091"; e.target.style.background = "#fff"; }}
               onBlur={(e) => { e.target.style.borderColor = "#e5e5e5"; e.target.style.background = "#f9fafb"; }}
             />
           </div>
@@ -137,7 +137,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
             style={{
               width: "100%",
               padding: "13px",
-              background: loading ? "#6ee7b7" : "#10b981",
+              background: loading ? "#6ee7b7" : "#38d091",
               color: "#fff",
               border: "none",
               borderRadius: 10,
@@ -156,7 +156,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
           {currentMode === "login" ? "Don't have an account? " : "Already have an account? "}
           <button
             onClick={() => { setCurrentMode(currentMode === "login" ? "register" : "login"); setError(""); }}
-            style={{ background: "none", border: "none", color: "#10b981", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: F }}
+            style={{ background: "none", border: "none", color: "#38d091", cursor: "pointer", fontSize: 14, fontWeight: 800, fontFamily: F }}
           >
             {currentMode === "login" ? "Sign up" : "Sign in"}
           </button>
