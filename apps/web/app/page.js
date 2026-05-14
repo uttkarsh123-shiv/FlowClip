@@ -7,7 +7,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingHero from "@/components/landing/LandingHero";
 import ExtensionPreview from "@/components/landing/ExtensionPreview";
 import LandingFeatures from "@/components/landing/LandingFeatures";
-import HowItWorks from "@/components/landing/HowItWorkswItWorks";
+import HowItWorks from "@/components/landing/HowItWorks";
 import LandingWhy from "@/components/landing/LandingWhy";
 import LandingFAQ from "@/components/landing/LandingFAQ";
 import LandingCTAFooter from "@/components/landing/LandingCTAFooter";
