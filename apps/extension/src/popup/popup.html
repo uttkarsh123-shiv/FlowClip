@@ -8,231 +8,138 @@
 
       body {
         width: 380px;
-        min-height: 520px;
-        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background: #fff;
         color: #000;
       }
 
       /* ── Header ── */
       header {
-        padding: 18px 20px;
+        padding: 16px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid #f0f0f0;
       }
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+      .logo { display: flex; align-items: center; gap: 8px; }
       .logo-icon {
-        width: 30px;
-        height: 30px;
-        background: #38d091;
-        border-radius: 7px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: 900;
-        color: #fff;
+        width: 28px; height: 28px;
+        background: #38d091; border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 900; color: #fff;
       }
-      .logo-name {
-        font-size: 15px;
-        font-weight: 900;
-        color: #000;
-        letter-spacing: -0.3px;
-      }
-      .header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+      .logo-name { font-size: 14px; font-weight: 900; color: #000; }
+      .header-right { display: flex; align-items: center; gap: 8px; }
       #count {
-        font-size: 12px;
-        color: #999;
-        font-weight: 600;
-        background: #f5f5f5;
-        padding: 4px 10px;
-        border-radius: 20px;
+        font-size: 11px; color: #999; font-weight: 600;
+        background: #f5f5f5; padding: 3px 9px; border-radius: 20px;
       }
       #logout-btn {
-        background: #f5f5f5;
-        border: none;
-        color: #666;
-        font-size: 12px;
-        padding: 5px 12px;
-        border-radius: 20px;
-        cursor: pointer;
-        display: none;
-        font-weight: 600;
-        transition: all 0.2s;
+        background: #f5f5f5; border: none; color: #666;
+        font-size: 11px; padding: 4px 10px; border-radius: 20px;
+        cursor: pointer; display: none; font-weight: 600;
       }
-      #logout-btn:hover {
-        background: #fee2e2;
-        color: #dc2626;
+      #logout-btn:hover { background: #fee2e2; color: #dc2626; }
+
+      /* ── Login hero ── */
+      .login-hero {
+        background: #38d091;
+        padding: 15px 12px 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .login-hero-dots {
+        position: absolute; inset: 0; pointer-events: none;
+        background-image: radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px);
+        background-size: 18px 18px;
+      }
+      .login-hero h2 {
+        font-size: 22px; font-weight: 900; color: #fff;
+        letter-spacing: -0.5px; line-height: 1.2;
+        margin-bottom: 8px; position: relative;
+      }
+      .login-hero p {
+        font-size: 13px; color: rgba(255,255,255,0.85);
+        font-weight: 500; margin-bottom: 20px; position: relative;
+      }
+      .feature-pills {
+        display: flex; flex-wrap: wrap; gap: 8px; position: relative;
+      }
+      .pill {
+        display: flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 20px; padding: 5px 12px;
+        font-size: 12px; font-weight: 600; color: #fff;
+      }
+      .pill-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: #fff; flex-shrink: 0;
       }
 
-      /* ── Login view ── */
+      /* ── Login form ── */
       #login-view {
-        padding: 28px 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        padding: 24px 24px 20px;
+        display: flex; flex-direction: column; gap: 14px;
       }
-      #login-view h2 {
-        font-size: 20px;
-        font-weight: 900;
-        color: #000;
-        letter-spacing: -0.5px;
+      #login-view h3 {
+        font-size: 16px; font-weight: 800; color: #000;
       }
-      #login-view p {
-        font-size: 13px;
-        color: #888;
-        margin-top: -8px;
-      }
-      .field {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      .field label {
-        font-size: 12px;
-        font-weight: 700;
-        color: #000;
-      }
+      .field { display: flex; flex-direction: column; gap: 4px; }
+      .field label { font-size: 13px; font-weight: 700; color: #555; }
       .field input {
-        background: #f9fafb;
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        color: #000;
-        font-size: 14px;
-        padding: 10px 12px;
-        outline: none;
-        width: 100%;
-        transition: all 0.2s;
-        font-family: inherit;
+        background: #f9fafb; border: 1px solid #e5e5e5;
+        border-radius: 8px; color: #000; font-size: 14px;
+        padding: 9px 11px; outline: none; width: 100%;
+        font-family: inherit; transition: border-color 0.2s;
       }
-      .field input:focus {
-        border-color: #38d091;
-        background: #fff;
-      }
+      .field input:focus { border-color: #38d091; background: #fff; }
       #login-btn {
-        background: #38d091;
-        border: none;
-        border-radius: 8px;
-        color: #fff;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 800;
-        padding: 12px;
-        margin-top: 4px;
-        transition: all 0.2s;
-        font-family: inherit;
+        background: #38d091; border: none; border-radius: 8px;
+        color: #fff; cursor: pointer; font-size: 13px; font-weight: 800;
+        padding: 11px; font-family: inherit; transition: background 0.2s;
       }
-      #login-btn:hover { background: #059669; }
-      #login-btn:disabled {
-        background: #6ee7b7;
-        cursor: not-allowed;
-      }
-      #login-error {
-        font-size: 12px;
-        color: #dc2626;
-        font-weight: 600;
-        min-height: 0;
-      }
+      #login-btn:hover { background: #2db87d; }
+      #login-btn:disabled { background: #6ee7b7; cursor: not-allowed; }
+      #login-error { font-size: 11px; color: #dc2626; font-weight: 600; }
 
       /* ── Clips view ── */
-      #clips-view {
-        display: none;
-        flex-direction: column;
-      }
+      #clips-view { display: none; flex-direction: column; }
       .section-label {
-        padding: 16px 20px 10px;
-        font-size: 11px;
-        font-weight: 700;
-        color: #aaa;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        padding: 14px 18px 8px;
+        font-size: 10px; font-weight: 700; color: #aaa;
+        text-transform: uppercase; letter-spacing: 1px;
       }
-      #clips {
-        padding: 0 12px 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+      #clips { padding: 0 10px; display: flex; flex-direction: column; gap: 7px; }
       .clip {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 16px;
-        background: #f9fafb;
-        border: 1px solid #f0f0f0;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.2s;
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 14px; background: #f9fafb;
+        border: 1px solid #f0f0f0; border-radius: 11px;
+        cursor: pointer; transition: all 0.2s;
       }
-      .clip:hover {
-        background: #f0fdf4;
-        border-color: #a7f3d0;
-      }
+      .clip:hover { background: #f0fdf4; border-color: #a7f3d0; }
       .clip-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 9px;
-        background: #fff;
-        border: 1px solid #e5e5e5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: 700;
-        color: #000;
-        flex-shrink: 0;
+        width: 34px; height: 34px; border-radius: 8px;
+        background: #fff; border: 1px solid #e5e5e5;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700; color: #000; flex-shrink: 0;
       }
       .clip.link .clip-icon { background: #ecfdf5; border-color: #a7f3d0; color: #38d091; }
       .clip.image .clip-icon { background: #eff6ff; border-color: #bfdbfe; color: #3b82f6; }
       .clip-content { flex: 1; min-width: 0; }
       .clip-text {
-        font-size: 13px;
-        color: #000;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-bottom: 3px;
+        font-size: 12px; color: #000; font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;
       }
-      .clip-time {
-        font-size: 11px;
-        color: #aaa;
-        font-weight: 500;
-      }
-      #empty {
-        padding: 40px 24px;
-        text-align: center;
-        color: #aaa;
-        font-size: 13px;
-        font-weight: 500;
-      }
-
-      /* ── Open dashboard link ── */
+      .clip-time { font-size: 10px; color: #aaa; font-weight: 500; }
+      #empty { padding: 36px 24px; text-align: center; color: #aaa; font-size: 12px; }
       .open-dashboard {
-        margin: 4px 12px 12px;
-        padding: 11px;
-        background: #38d091;
-        border: none;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 13px;
-        font-weight: 800;
-        cursor: pointer;
-        width: calc(100% - 24px);
-        font-family: inherit;
-        transition: all 0.2s;
+        margin: 8px 10px 10px;
+        padding: 10px; background: #38d091; border: none;
+        border-radius: 9px; color: #fff; font-size: 12px; font-weight: 800;
+        cursor: pointer; width: calc(100% - 20px); font-family: inherit;
       }
-      .open-dashboard:hover { background: #059669; }
+      .open-dashboard:hover { background: #2db87d; }
     </style>
   </head>
   <body>
@@ -249,20 +156,29 @@
 
     <!-- Login view -->
     <div id="login-view">
-      <div>
-        <h2>Welcome back</h2>
-        <p>Sign in to access your clips</p>
+
+      <!-- Brief intro -->
+      <div style="padding: 16px 20px 0;">
+        <p style="font-size: 11px; font-weight: 700; color: #38d091; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;">Your capture companion</p>
+        <h2 style="font-size: 20px; font-weight: 900; color: #000; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 8px;">Save ideas without losing focus</h2>
+        <p style="font-size: 13px; color: #888; line-height: 1.5; font-weight: 500;">Copy any text or link to save it. Press S twice for a screenshot. Syncs instantly.</p>
+        <div style="height: 1px; background: #f0f0f0; margin: 14px 0;"></div>
       </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="email" placeholder="you@example.com" />
+
+      <!-- Form -->
+      <div style="padding: 0 20px 16px; display: flex; flex-direction: column; gap: 10px;">
+        <h3 style="font-size: 15px; font-weight: 800; color: #000;">Sign in to get started</h3>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="••••••••" />
+        </div>
+        <div id="login-error"></div>
+        <button id="login-btn">Sign in</button>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="••••••••" />
-      </div>
-      <div id="login-error"></div>
-      <button id="login-btn">Sign in</button>
     </div>
 
     <!-- Clips view -->
