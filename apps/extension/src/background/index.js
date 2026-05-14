@@ -23,21 +23,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle screenshot capture
   if (message.type === "CAPTURE_SCREENSHOT") {
-    console.log("Background received CAPTURE_SCREENSHOT message");
-    // Use JPEG with quality 0.6 to keep size under 1MB
     chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 60 }, (dataUrl) => {
       if (chrome.runtime.lastError) {
         console.error("Screenshot failed:", chrome.runtime.lastError);
         return;
       }
-      
-      console.log("Screenshot captured successfully");
       pendingScreenshot = {
         imageData: dataUrl,
         url: message.payload.url,
         tabId: sender.tab.id
       };
-      
       chrome.tabs.sendMessage(sender.tab.id, {
         type: "SHOW_SCREENSHOT_CONFIRMATION",
         payload: { imageData: dataUrl, url: message.payload.url }
@@ -100,14 +95,13 @@ async function getValidAccessToken() {
 
 async function saveToConvex(data) {
   const accessToken = await getValidAccessToken();
-  if (!accessToken) { console.error("Not logged in"); return; }
+  if (!accessToken) return;
   try {
     await fetch(`${CONVEX_SITE_URL}/clips`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
       body: JSON.stringify({ content: data.content, url: data.url }),
     });
-    console.log("Saved to Convex");
   } catch (e) {
     console.error("Failed to save", e);
   }
@@ -115,7 +109,7 @@ async function saveToConvex(data) {
 
 async function saveScreenshotToConvex(data) {
   const accessToken = await getValidAccessToken();
-  if (!accessToken) { console.error("Not logged in"); return; }
+  if (!accessToken) return;
   try {
     await fetch(`${CONVEX_SITE_URL}/clips`, {
       method: "POST",
@@ -127,7 +121,6 @@ async function saveScreenshotToConvex(data) {
         imageData: data.imageData,
       }),
     });
-    console.log("Screenshot saved to Convex");
   } catch (e) {
     console.error("Failed to save screenshot", e);
   }

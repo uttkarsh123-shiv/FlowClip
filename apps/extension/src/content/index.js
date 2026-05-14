@@ -1,9 +1,3 @@
-console.log("FlowClip content script loaded!"); // Add this at the very top
-
-// Track modifier keys manually
-let ctrlPressed = false;
-let shiftPressed = false;
-
 // Track double S press for screenshot
 let lastSPress = 0;
 
@@ -29,13 +23,7 @@ function isBlockedDomain(url) {
 let lastCaptured = null;
 
 function captureScreenshot() {
-  console.log("captureScreenshot called"); // Debug log
-  if (isBlockedDomain(window.location.href)) {
-    console.log("Blocked domain, skipping screenshot"); // Debug log
-    return;
-  }
-  
-  console.log("Sending CAPTURE_SCREENSHOT message"); // Debug log
+  if (isBlockedDomain(window.location.href)) return;
   try {
     chrome.runtime.sendMessage({
       type: "CAPTURE_SCREENSHOT",
@@ -141,9 +129,7 @@ function showScreenshotToast(imageData, sourceUrl) {
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Content script received message:", message.type); // Debug log
   if (message.type === "SHOW_SCREENSHOT_CONFIRMATION") {
-    console.log("Showing screenshot confirmation modal"); // Debug log
     showScreenshotToast(message.payload.imageData, message.payload.url);
   }
 });
@@ -175,13 +161,6 @@ document.addEventListener("copy", () => {
 // Fallback for Monaco-based editors (LeetCode, CodeSandbox, etc.)
 // Monaco doesn't fire the native copy DOM event
 document.addEventListener("keydown", (e) => {
-  // Only log non-modifier keys to avoid spam
-  if (e.key !== "Control" && e.key !== "Meta" && e.key !== "Shift") {
-    console.log("Key pressed:", e.key);
-  }
-  
-  // Screenshot shortcut: Double S press within 2 seconds
-  // Ignore if user is typing in an input/textarea
   const tag = document.activeElement?.tagName;
   const isEditable = document.activeElement?.isContentEditable;
   if (tag === "INPUT" || tag === "TEXTAREA" || isEditable) return;
@@ -189,17 +168,14 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "s" || e.key === "S") {
     const now = Date.now();
     if (now - lastSPress < 2000) {
-      console.log("Double S detected - taking screenshot!");
       captureScreenshot();
-      lastSPress = 0; // Reset to prevent triple-press
+      lastSPress = 0;
     } else {
       lastSPress = now;
-      console.log("First S press detected, waiting for second...");
     }
     return;
   }
 
-  // Copy detection for Monaco editors
   if ((e.ctrlKey || e.metaKey) && e.key === "c") {
     setTimeout(async () => {
       try {
