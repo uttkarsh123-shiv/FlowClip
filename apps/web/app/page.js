@@ -221,11 +221,11 @@ const SLIDES = [
   {
     label: "Save links instantly",
     heading: "Browsing something useful?",
-    desc: "Press Shift+S and the link is saved. No copy-paste, no tab switching. Just keep reading.",
+    desc: "Copy any text or link on the page. It's saved with the source URL automatically.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "just now" },
-      { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "4 min ago" },
-      { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
+      { badge: "LINK", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "just now" },
+      { badge: "TEXT", text: "Focus is the new superpower.", iconBg: "#f5f5f5", iconColor: "#000", time: "4 min ago" },
+      { badge: "IMG", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
     ],
     activeIndex: 0,
   },
@@ -234,20 +234,20 @@ const SLIDES = [
     heading: "Found a quote worth keeping?",
     desc: "Copy any text or link on the page. It's saved with the source URL automatically.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
-      { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "just now" },
-      { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
+      { badge: "LINK", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
+      { badge: "TEXT", text: "Focus is the new superpower.", iconBg: "#f5f5f5", iconColor: "#000", time: "just now" },
+      { badge: "IMG", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "9 min ago" },
     ],
     activeIndex: 1,
   },
   {
     label: "Screenshot anything",
     heading: "See something you need to remember?",
-    desc: "Press Shift+S twice to capture a screenshot of the page. Stored and synced instantly.",
+    desc: "Press S twice to capture a screenshot of the page. Stored and synced instantly.",
     clips: [
-      { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
-      { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "9 min ago" },
-      { icon: "◻", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "just now" },
+      { badge: "LINK", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
+      { badge: "TEXT", text: "Focus is the new superpower.", iconBg: "#f5f5f5", iconColor: "#000", time: "9 min ago" },
+      { badge: "IMG", text: "Screenshot captured", iconBg: "#eff6ff", iconColor: "#3b82f6", time: "just now" },
     ],
     activeIndex: 2,
   },
@@ -330,7 +330,7 @@ function ExtensionPreview({ F }) {
                     transition: "all 0.4s ease",
                     animation: isActive ? "fadeSlideIn 0.4s ease" : "none",
                   }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 10, background: clip.iconBg, border: "1px solid #e5e5e5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: clip.iconColor, flexShrink: 0, fontFamily: F }}>{clip.icon}</div>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: clip.iconBg, border: "1px solid #e5e5e5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: clip.iconColor, flexShrink: 0, fontFamily: F, letterSpacing: "0.5px" }}>{clip.badge}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: isActive ? 700 : 600, color: "#000", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: F }}>{clip.text}</div>
                       <div style={{ fontSize: 13, color: isActive ? "#38d091" : "#aaa", marginTop: 4, fontWeight: isActive ? 600 : 400, fontFamily: F }}>{clip.time}</div>

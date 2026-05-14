@@ -178,12 +178,10 @@ function renderClips(clips) {
 }
 
 function getClipIcon(content) {
-  if (/^https?:\/\//.test(content)) return { icon: "↗", type: "link" };
-  if (/^data:image/.test(content)) return { icon: "◻", type: "image" };
-  if (/^```|^function|^const|^let|^var|^class|^import|^export/.test(content)) return { icon: "<>", type: "code" };
-  if (/^{|^\[/.test(content.trim())) return { icon: "<>", type: "code" };
-  if (/^Screenshot|^Image|^Photo/.test(content)) return { icon: "◻", type: "screenshot" };
-  return { icon: "T", type: "text" };
+  if (/^https?:\/\//.test(content)) return { icon: "LINK", type: "link" };
+  if (/^data:image/.test(content)) return { icon: "IMG", type: "image" };
+  if (/^Screenshot|^Image|^Photo/.test(content)) return { icon: "IMG", type: "image" };
+  return { icon: "TEXT", type: "text" };
 }
 
 function getClipPreview(content) {
