@@ -106,7 +106,7 @@ App runs at `http://localhost:3000`.
 ## How It Works
 
 1. **Install** — Load the extension in Chrome
-2. **Capture** — Press `Shift+S` on any page to save text, links, or press `Shift+S` twice for a screenshot
+2. **Capture** — Press `Shift+S` on any page to save text or links. Press `S` twice quickly to capture a screenshot
 3. **Access** — Open the dashboard at `/dashboard` to view, search, and manage all clips
 
 ---

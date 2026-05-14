@@ -90,7 +90,7 @@ export default function Home() {
               {[
                 {
                   iconBg: "#fff7e6", title: "One keystroke",
-                  desc: "Shift+S captures anything on the page. No menus, no friction, no interruption.",
+                  desc: "Press S twice to capture anything on the page. No menus, no friction, no interruption.",
                   svg: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 },
                 {
@@ -232,7 +232,7 @@ const SLIDES = [
   {
     label: "Capture text",
     heading: "Found a quote worth keeping?",
-    desc: "Select any text on any page and press Shift+S. It's saved with the source URL automatically.",
+    desc: "Copy any text or link on the page. It's saved with the source URL automatically.",
     clips: [
       { icon: "↗", text: "https://producthunt.com/", iconBg: "#ecfdf5", iconColor: "#38d091", time: "4 min ago" },
       { icon: "T", text: "Focus is the new superpower.", iconBg: "#fff", iconColor: "#000", time: "just now" },
