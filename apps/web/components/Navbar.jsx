@@ -40,7 +40,7 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
 
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 10, background: "#38d091", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" }}>F</div>
+        <div style={{ width: 40, height: 40, borderRadius: 10, background: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" }}>F</div>
         <span style={{ fontSize: 18, fontWeight: 900, color: "#000" }}>FlowClip</span>
       </div>
 

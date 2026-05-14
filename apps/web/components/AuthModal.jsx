@@ -76,7 +76,7 @@ export default function AuthModal({ onClose, mode = "login" }) {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 32 }}>
-          <div style={{ width: 32, height: 32, background: "#38d091", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff" }}>F</div>
+          <div style={{ width: 32, height: 32, background: "#000", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff" }}>F</div>
           <span style={{ fontWeight: 900, fontSize: 16, color: "#000" }}>FlowClip</span>
         </div>
 

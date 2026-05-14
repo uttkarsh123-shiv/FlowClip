@@ -180,7 +180,7 @@ export default function Home() {
         {/* ── FOOTER ── */}
         <footer style={{ background: "#000", padding: "56px 64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 30, height: 30, background: "#38d091", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff", fontFamily: F }}>F</div>
+            <div style={{ width: 30, height: 30, background: "#000", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff", fontFamily: F }}>F</div>
             <span style={{ fontWeight: 900, fontSize: 17, color: "#fff", fontFamily: F }}>FlowClip</span>
           </div>
           <p style={{ fontSize: 15, color: "#555", margin: 0, fontFamily: F }}>© 2026 FlowClip. All rights reserved.</p>
@@ -306,7 +306,7 @@ function ExtensionPreview({ F }) {
             {/* Header */}
             <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 36, height: 36, background: "#38d091", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff", fontFamily: F }}>F</div>
+                <div style={{ width: 36, height: 36, background: "#000", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff", fontFamily: F }}>F</div>
                 <span style={{ fontSize: 18, fontWeight: 900, color: "#000", fontFamily: F }}>FlowClip</span>
               </div>
               <span style={{ fontSize: 14, color: "#999", background: "#f5f5f5", padding: "5px 12px", borderRadius: 20, fontWeight: 600, fontFamily: F }}>3 clips</span>
