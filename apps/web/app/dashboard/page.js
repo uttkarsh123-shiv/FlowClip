@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Navbar from "@/components/dashboard/Navbar";
 import Sidebar from "@/components/dashboard/Sidebar";
-import ItemCard from "@/components/ItemCard";
+import ItemCard from "@/components/dashboard/ItemCard";
 import { useAuth } from "@/hooks/useAuth";
 import { logout } from "@/lib/auth";
 

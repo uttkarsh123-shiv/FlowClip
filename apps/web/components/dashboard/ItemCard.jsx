@@ -1,10 +1,10 @@
 "use client";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect, useRef } from "react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
-import KebabMenu from "./dashboard/KebabMenu.jsx";
+import KebabMenu from "./KebabMenu.jsx";
 import { useAuth } from "@/hooks/useAuth";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
