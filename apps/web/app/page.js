@@ -10,6 +10,7 @@ const F = "var(--font-sans), 'Plus Jakarta Sans', sans-serif";
 export default function Home() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [navHover, setNavHover] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
   const [authModal, setAuthModel] = useState(null);
 
@@ -37,15 +38,24 @@ export default function Home() {
             <span style={{ fontWeight: 900, fontSize: 25, color: "#000", letterSpacing: "-0.3px" }}>FlowClip</span>
           </div>
 
-          {/* Center pill nav — exactly like Payard */}
+          {/* Center pill nav */}
           <div style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.18)", borderRadius: 40, padding: "6px 8px", gap: 4 }}>
-            {["Features", "How it works", "FAQ"].map((item, i) => (
-              <button key={item} style={{
-                background: i === 2 ? "#38d091" : "transparent",
-                border: i === 2 ? "1px solid rgba(255,255,255,0.5)" : "none",
-                borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15,
-                cursor: "pointer", padding: "8px 20px", fontFamily: F,
-              }}>{item}</button>
+            {[
+              { label: "Features", id: "features" },
+              { label: "How it works", id: "how-it-works" },
+              { label: "FAQ", id: "faq" },
+            ].map((item, i) => (
+              <button key={item.label}
+                onClick={() => document.getElementById(item.id)?.scrollIntoView({ behavior: "smooth" })}
+                onMouseEnter={() => setNavHover(i)}
+                onMouseLeave={() => setNavHover(null)}
+                style={{
+                  background: navHover === i ? "rgba(255,255,255,0.25)" : "transparent",
+                  border: navHover === i ? "1px solid rgba(255,255,255,0.5)" : "1px solid transparent",
+                  borderRadius: 32, color: "#fff", fontWeight: 700, fontSize: 15,
+                  cursor: "pointer", padding: "8px 20px", fontFamily: F,
+                  transition: "all 0.2s ease",
+                }}>{item.label}</button>
             ))}
           </div>
 
@@ -83,7 +93,7 @@ export default function Home() {
         <ExtensionPreview F={F} />
 
         {/* ── FEATURES ── */}
-        <section style={{ background: "#fff", padding: "120px 64px" }}>
+        <section id="features" style={{ background: "#fff", padding: "120px 64px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <h2 style={{ fontSize: 72, fontWeight: 900, color: "#000", marginBottom: 64, letterSpacing: "-2px", fontFamily: F }}>Built for focus</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
@@ -114,7 +124,7 @@ export default function Home() {
           </div>
         </section>
 
-        <HowItWorks />
+        <div id="how-it-works"><HowItWorks /></div>
 
         {/* ── WHY FLOWCLIP — Payard "Expert Consulting" layout ── */}
         <section style={{ background: "#fff", padding: "120px 64px" }}>
@@ -165,7 +175,7 @@ export default function Home() {
         </section>
 
         {/* ── FAQ ── */}
-        <section style={{ background: "#fff", padding: "120px 64px" }}>
+        <section id="faq" style={{ background: "#fff", padding: "120px 64px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }}>
             <div>
               <h2 style={{ fontSize: 72, fontWeight: 900, color: "#000", marginBottom: 20, letterSpacing: "-2px", fontFamily: F }}>FAQ</h2>
@@ -228,7 +238,7 @@ export default function Home() {
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                   <div style={{ width: 32, height: 32, background: "#000", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 15, color: "#fff" }}>F</div>
-                  <span style={{ fontWeight: 900, fontSize: 18, color: "#fff" }}>FlowClip</span>
+                  <span style={{ fontWeight: 900, fontSize: 18, color: "#000000ff" }}>FlowClip</span>
                 </div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", fontWeight: 500, maxWidth: 280, lineHeight: 1.6 }}>
                   Capture ideas without breaking your flow.
