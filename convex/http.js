@@ -2,6 +2,7 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
 import { validateEmail, validatePassword } from "./lib/sanitize.js";
+import { applyRateLimit } from "./lib/rateLimit.js";
 
 const http = httpRouter();
 
@@ -36,6 +37,12 @@ http.route({
   path: "/auth/register",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(req, "/auth/register");
+    if (rateLimitResult) {
+      return json(rateLimitResult.body, rateLimitResult.status);
+    }
+    
     try {
       const { email, password, name } = await req.json();
       
@@ -65,6 +72,12 @@ http.route({
   path: "/auth/login",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(req, "/auth/login");
+    if (rateLimitResult) {
+      return json(rateLimitResult.body, rateLimitResult.status);
+    }
+    
     try {
       const { email, password } = await req.json();
       
@@ -109,6 +122,12 @@ http.route({
   path: "/auth/refresh",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(req, "/auth/refresh");
+    if (rateLimitResult) {
+      return json(rateLimitResult.body, rateLimitResult.status);
+    }
+    
     try {
       const { refreshToken } = await req.json();
       if (!refreshToken) return json({ error: "Refresh token required" }, 400);
@@ -152,6 +171,12 @@ http.route({
   path: "/clips",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
+    // Apply rate limiting
+    const rateLimitResult = applyRateLimit(req, "/clips");
+    if (rateLimitResult) {
+      return json(rateLimitResult.body, rateLimitResult.status);
+    }
+    
     const userId = await getUserIdFromRequest(ctx, req);
     if (!userId) return json({ error: "Unauthorized" }, 401);
 
