@@ -129,7 +129,7 @@ App runs at `http://localhost:3000`.
 ## How It Works
 
 1. **Install** — Load the extension in Chrome
-2. **Capture** — Press `Shift+S` on any page to save text or links. Press `S` twice quickly to capture a screenshot
+2. **Capture** — Press `S twice` on any page to save text or links. Press `S` twice quickly to capture a screenshot
 3. **Access** — Open the dashboard at `/dashboard` to view, search, and manage all clips
 
 ---
@@ -139,7 +139,9 @@ App runs at `http://localhost:3000`.
 **Security Features:**
 - JWT-based access/refresh token rotation
 - PBKDF2 password hashing with salt
-- Secure cross-origin communication protocols
+- Input validation and sanitization
+- XSS protection through content filtering
+- Hybrid rate limiting (IP + UserID) for shared networks
 - Automatic token expiration and cleanup
 - Chrome storage for extension token persistence
 
