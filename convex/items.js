@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { sanitizeText, sanitizeUrl } from "./lib/sanitize.js";
 
 export const createItem = mutation({
   args: {
@@ -10,8 +11,35 @@ export const createItem = mutation({
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    // Sanitize content - remove dangerous content but preserve text
+    const sanitizedContent = sanitizeText(args.content);
+    
+    // Sanitize URL if provided
+    const sanitizedUrl = args.url ? sanitizeUrl(args.url) : undefined;
+    
+    // Validate that we have actual content
+    if (!sanitizedContent && !args.imageData) {
+      throw new Error("Content cannot be empty");
+    }
+    
+    // For image data, basic validation (should be base64)
+    let sanitizedImageData = args.imageData;
+    if (args.imageData) {
+      if (typeof args.imageData !== 'string' || args.imageData.length > 5000000) { // ~5MB limit
+        throw new Error("Invalid image data");
+      }
+      // Basic base64 validation
+      if (!args.imageData.startsWith('data:image/')) {
+        throw new Error("Invalid image format");
+      }
+    }
+    
     return await ctx.db.insert("items", {
-      ...args,
+      type: args.type,
+      content: sanitizedContent,
+      url: sanitizedUrl,
+      imageData: sanitizedImageData,
+      userId: args.userId,
       createdAt: Date.now(),
     });
   },

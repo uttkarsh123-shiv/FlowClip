@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { api } from "./_generated/api";
+import { validateEmail, validatePassword } from "./lib/sanitize.js";
 
 const http = httpRouter();
 
@@ -37,7 +38,21 @@ http.route({
   handler: httpAction(async (ctx, req) => {
     try {
       const { email, password, name } = await req.json();
-      if (!email || !password) return json({ error: "Email and password required" }, 400);
+      
+      // Validate required fields
+      if (!email || !password) {
+        return json({ error: "Email and password required" }, 400);
+      }
+      
+      // Additional validation at HTTP layer
+      if (!validateEmail(email)) {
+        return json({ error: "Invalid email format" }, 400);
+      }
+      
+      if (!validatePassword(password)) {
+        return json({ error: "Password must be between 8-128 characters" }, 400);
+      }
+      
       const result = await ctx.runMutation(api.auth.register, { email, password, name });
       return json(result);
     } catch (e) {
@@ -52,7 +67,21 @@ http.route({
   handler: httpAction(async (ctx, req) => {
     try {
       const { email, password } = await req.json();
-      if (!email || !password) return json({ error: "Email and password required" }, 400);
+      
+      // Validate required fields
+      if (!email || !password) {
+        return json({ error: "Email and password required" }, 400);
+      }
+      
+      // Additional validation at HTTP layer
+      if (!validateEmail(email)) {
+        return json({ error: "Invalid email or password" }, 401);
+      }
+      
+      if (!validatePassword(password)) {
+        return json({ error: "Invalid email or password" }, 401);
+      }
+      
       const result = await ctx.runMutation(api.auth.login, { email, password });
       return json(result);
     } catch (e) {
@@ -126,24 +155,43 @@ http.route({
     const userId = await getUserIdFromRequest(ctx, req);
     if (!userId) return json({ error: "Unauthorized" }, 401);
 
-    const body = await req.json();
+    try {
+      const body = await req.json();
+      
+      // Validate content exists
+      if (!body.content && !body.imageData) {
+        return json({ error: "Content is required" }, 400);
+      }
+      
+      // Validate content length
+      if (body.content && body.content.length > 10000) {
+        return json({ error: "Content too long" }, 400);
+      }
+      
+      // Validate URL if provided
+      if (body.url && (typeof body.url !== 'string' || body.url.length > 2048)) {
+        return json({ error: "Invalid URL" }, 400);
+      }
 
-    if (body.type === "image" && body.imageData) {
-      await ctx.runMutation(api.items.createItem, {
-        type: "image",
-        content: body.content || "Screenshot captured",
-        url: body.url,
-        imageData: body.imageData,
-        userId,
-      });
-    } else {
-      const { content, url } = body;
-      const isUrl = /^https?:\/\//i.test(content?.trim());
-      const type = isUrl ? "link" : "text";
-      await ctx.runMutation(api.items.createItem, { type, content, url, userId });
+      if (body.type === "image" && body.imageData) {
+        await ctx.runMutation(api.items.createItem, {
+          type: "image",
+          content: body.content || "Screenshot captured",
+          url: body.url,
+          imageData: body.imageData,
+          userId,
+        });
+      } else {
+        const { content, url } = body;
+        const isUrl = /^https?:\/\//i.test(content?.trim());
+        const type = isUrl ? "link" : "text";
+        await ctx.runMutation(api.items.createItem, { type, content, url, userId });
+      }
+
+      return json({ ok: true });
+    } catch (e) {
+      return json({ error: e.message }, 400);
     }
-
-    return json({ ok: true });
   }),
 });
 

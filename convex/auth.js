@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { validateEmail, sanitizeName, validatePassword } from "./lib/sanitize.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -51,18 +52,32 @@ export const register = mutation({
     name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Validate email format
+    if (!validateEmail(args.email)) {
+      throw new Error("Invalid email format");
+    }
+    
+    // Validate password strength
+    if (!validatePassword(args.password)) {
+      throw new Error("Password must be between 8-128 characters");
+    }
+    
+    // Sanitize name if provided
+    const name = args.name ? sanitizeName(args.name) : undefined;
+    
+    // Check if email already exists
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
       .first();
 
     if (existing) throw new Error("Email already registered");
 
     const passwordHash = await hashPassword(args.password);
     const userId = await ctx.db.insert("users", {
-      email: args.email,
+      email: args.email.toLowerCase().trim(),
       passwordHash,
-      name: args.name,
+      name,
       createdAt: Date.now(),
     });
 
@@ -76,9 +91,19 @@ export const login = mutation({
     password: v.string(),
   },
   handler: async (ctx, args) => {
+    // Validate email format
+    if (!validateEmail(args.email)) {
+      throw new Error("Invalid email or password");
+    }
+    
+    // Validate password
+    if (!validatePassword(args.password)) {
+      throw new Error("Invalid email or password");
+    }
+    
     const user = await ctx.db
       .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
       .first();
 
     if (!user) throw new Error("Invalid email or password");
