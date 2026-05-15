@@ -37,8 +37,8 @@ http.route({
   path: "/auth/register",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    // Apply rate limiting
-    const rateLimitResult = applyRateLimit(req, "/auth/register");
+    // Apply rate limiting (no userId for registration)
+    const rateLimitResult = applyRateLimit(req, "/auth/register", null);
     if (rateLimitResult) {
       return json(rateLimitResult.body, rateLimitResult.status);
     }
@@ -72,8 +72,8 @@ http.route({
   path: "/auth/login",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    // Apply rate limiting
-    const rateLimitResult = applyRateLimit(req, "/auth/login");
+    // Apply rate limiting (no userId for login)
+    const rateLimitResult = applyRateLimit(req, "/auth/login", null);
     if (rateLimitResult) {
       return json(rateLimitResult.body, rateLimitResult.status);
     }
@@ -110,6 +110,17 @@ http.route({
     try {
       const { accessToken } = await req.json();
       if (!accessToken) return json({ error: "Access token required" }, 400);
+      
+      // Get user from access token for rate limiting
+      const user = await ctx.runQuery(api.auth.getMe, { accessToken });
+      const userId = user?._id;
+      
+      // Apply rate limiting with userId if available
+      const rateLimitResult = applyRateLimit(req, "/auth/logout", userId);
+      if (rateLimitResult) {
+        return json(rateLimitResult.body, rateLimitResult.status);
+      }
+      
       const result = await ctx.runMutation(api.auth.logout, { accessToken });
       return json(result);
     } catch (e) {
@@ -122,15 +133,20 @@ http.route({
   path: "/auth/refresh",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    // Apply rate limiting
-    const rateLimitResult = applyRateLimit(req, "/auth/refresh");
-    if (rateLimitResult) {
-      return json(rateLimitResult.body, rateLimitResult.status);
-    }
-    
     try {
       const { refreshToken } = await req.json();
       if (!refreshToken) return json({ error: "Refresh token required" }, 400);
+      
+      // Get user from refresh token to apply user-specific rate limiting
+      const session = await ctx.runQuery(api.auth.getMeByRefreshToken, { refreshToken });
+      const userId = session?.userId;
+      
+      // Apply rate limiting with userId if available
+      const rateLimitResult = applyRateLimit(req, "/auth/refresh", userId);
+      if (rateLimitResult) {
+        return json(rateLimitResult.body, rateLimitResult.status);
+      }
+      
       const result = await ctx.runMutation(api.auth.refreshToken, { refreshToken });
       return json(result);
     } catch (e) {
@@ -149,6 +165,13 @@ http.route({
       const accessToken = authHeader.slice(7);
       const user = await ctx.runQuery(api.auth.getMe, { accessToken });
       if (!user) return json({ error: "Unauthorized" }, 401);
+      
+      // Apply rate limiting with userId
+      const rateLimitResult = applyRateLimit(req, "/auth/me", user._id);
+      if (rateLimitResult) {
+        return json(rateLimitResult.body, rateLimitResult.status);
+      }
+      
       return json(user);
     } catch (e) {
       return json({ error: e.message }, 401);
@@ -171,15 +194,15 @@ http.route({
   path: "/clips",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
-    // Apply rate limiting
-    const rateLimitResult = applyRateLimit(req, "/clips");
+    const userId = await getUserIdFromRequest(ctx, req);
+    if (!userId) return json({ error: "Unauthorized" }, 401);
+
+    // Apply rate limiting with userId
+    const rateLimitResult = applyRateLimit(req, "/clips", userId);
     if (rateLimitResult) {
       return json(rateLimitResult.body, rateLimitResult.status);
     }
     
-    const userId = await getUserIdFromRequest(ctx, req);
-    if (!userId) return json({ error: "Unauthorized" }, 401);
-
     try {
       const body = await req.json();
       
@@ -227,6 +250,12 @@ http.route({
     const userId = await getUserIdFromRequest(ctx, req);
     if (!userId) return json({ error: "Unauthorized" }, 401);
 
+    // Apply rate limiting with userId
+    const rateLimitResult = applyRateLimit(req, "/clips", userId);
+    if (rateLimitResult) {
+      return json(rateLimitResult.body, rateLimitResult.status);
+    }
+    
     const items = await ctx.runQuery(api.items.getItems, { userId });
     return json(items);
   }),

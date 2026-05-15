@@ -177,6 +177,21 @@ export const getMe = query({
   },
 });
 
+export const getMeByRefreshToken = query({
+  args: { refreshToken: v.string() },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_refresh_token", (q) => q.eq("refreshToken", args.refreshToken))
+      .first();
+
+    if (!session) return null;
+    if (Date.now() > session.refreshTokenExpiresAt) return null;
+
+    return { userId: session.userId };
+  },
+});
+
 // ─── Internal helper ─────────────────────────────────────────────────────────
 
 async function createSession(ctx, userId) {
