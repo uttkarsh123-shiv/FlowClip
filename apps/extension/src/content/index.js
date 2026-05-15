@@ -47,19 +47,19 @@ function showScreenshotToast(imageData, sourceUrl) {
   toast.innerHTML = `
     <div style="
       position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:#fff; border:1px solid #e5e5e5; border-radius:16px;
+      background:#1a1a1a; border-radius:16px;
       padding:20px; font-family:'Plus Jakarta Sans',-apple-system,sans-serif;
-      font-size:13px; z-index:999999; box-shadow:0 12px 48px rgba(0,0,0,0.15);
+      font-size:13px; z-index:999999; box-shadow:0 4px 20px rgba(0,0,0,0.4);
       width:360px;
     ">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
         <div style="width:24px;height:24px;background:#000;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0;">F</div>
         <span style="font-size:12px;font-weight:700;color:#38d091;text-transform:uppercase;letter-spacing:0.5px;">Screenshot captured</span>
       </div>
-      <img src="${imageData}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:14px;border:1px solid #f0f0f0;display:block;" />
+      <img src="${imageData}" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block;" />
       <div style="display:flex;gap:8px;">
-        <button id="flowclip-screenshot-save" style="flex:1;padding:10px;background:#38d091;color:#fff;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Save</button>
-        <button id="flowclip-screenshot-ignore" style="flex:1;padding:10px;background:#f5f5f5;color:#666;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Ignore</button>
+        <button id="flowclip-screenshot-save" style="flex:1;padding:10px;background:#38d091;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;">Save</button>
+        <button id="flowclip-screenshot-ignore" style="flex:1;padding:10px;background:#2a2a2a;color:#aaa;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Ignore</button>
       </div>
     </div>
   `;
@@ -102,21 +102,20 @@ function showToast(text, sourceUrl) {
   toast.innerHTML = `
     <div style="
       position:fixed; bottom:24px; right:24px;
-      background:#fff; border:1px solid #e5e5e5; border-radius:14px;
-      padding:14px 16px; font-family:'Plus Jakarta Sans',-apple-system,sans-serif;
-      font-size:13px; max-width:300px; z-index:999999;
-      box-shadow:0 8px 32px rgba(0,0,0,0.12);
+      background:#1a1a1a; color:#f0f0f0;
+      border:1px solid #333; border-radius:10px;
+      padding:12px 16px;
+      font-family:-apple-system,sans-serif; font-size:13px;
+      max-width:280px; z-index:999999;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
     ">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <div style="width:22px;height:22px;background:#000;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;">F</div>
-        <span style="font-size:12px;font-weight:700;color:#38d091;text-transform:uppercase;letter-spacing:0.5px;">FlowClip captured</span>
-      </div>
-      <div style="font-size:13px;color:#000;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:12px;padding:8px 10px;background:#f9fafb;border-radius:8px;border:1px solid #f0f0f0;">
+      <div style="margin-bottom:8px;color:#aaa;font-size:11px;">FlowClip captured</div>
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:10px;font-size:13px;">
         ${text.slice(0, 60)}${text.length > 60 ? "…" : ""}
       </div>
       <div style="display:flex;gap:8px;">
-        <button id="flowclip-save" style="flex:1;padding:8px;background:#38d091;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;">Save</button>
-        <button id="flowclip-ignore" style="flex:1;padding:8px;background:#f5f5f5;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Ignore</button>
+        <button id="flowclip-save" style="flex:1;padding:6px;background:#38d091;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;">✔ Save</button>
+        <button id="flowclip-ignore" style="flex:1;padding:6px;background:#2a2a2a;color:#aaa;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:12px;">✕ Ignore</button>
       </div>
     </div>
   `;

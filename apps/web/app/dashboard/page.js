@@ -12,7 +12,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [activeType, setActiveType] = useState("all");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [clipCount, setClipCount] = useState(0);
 

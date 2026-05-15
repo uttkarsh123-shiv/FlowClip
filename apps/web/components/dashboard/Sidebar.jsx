@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { type: "image", label: "Images",    icon: <ImageIcon /> },
 ];
 
-export default function Sidebar({ active = "all", onChange, isOpen = false }) {
+export default function Sidebar({ active = "all", onChange, isOpen = true }) {
   if (!isOpen) return null;
   return (
     <aside style={{

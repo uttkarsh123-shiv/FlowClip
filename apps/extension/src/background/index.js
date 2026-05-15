@@ -23,11 +23,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle screenshot capture
   if (message.type === "CAPTURE_SCREENSHOT") {
-    chrome.tabs.captureVisibleTab(null, { format: "jpeg", quality: 60 }, (dataUrl) => {
+    const tabUrl = message.payload.url || "";
+    if (tabUrl.startsWith("chrome://") || tabUrl.startsWith("chrome-extension://") || tabUrl.startsWith("edge://")) {
+      return;
+    }
+    // Use the sender tab's windowId to capture the correct window
+    const windowId = sender.tab?.windowId;
+    chrome.tabs.captureVisibleTab(windowId, { format: "jpeg", quality: 60 }, (dataUrl) => {
       if (chrome.runtime.lastError) {
-        console.error("Screenshot failed:", chrome.runtime.lastError);
+        console.error("Screenshot failed:", chrome.runtime.lastError.message);
         return;
       }
+      if (!dataUrl) return;
       pendingScreenshot = {
         imageData: dataUrl,
         url: message.payload.url,
