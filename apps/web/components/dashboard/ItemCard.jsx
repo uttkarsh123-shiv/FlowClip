@@ -20,6 +20,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [selectedImage, setSelectedImage] = useState(null);
   const [hoveredUrl, setHoveredUrl] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
+  const [copied, setCopied] = useState(false);
   const kebabRefs = useRef({});
   const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
@@ -135,7 +136,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       </div>
       <ImageModal imageData={selectedImage} onClose={() => setSelectedImage(null)} />
       {selectedText && (
-        <div onClick={() => setSelectedText(null)}
+        <div onClick={() => { setSelectedText(null); setCopied(false); }}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div onClick={(e) => e.stopPropagation()}
             style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 680, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 40px rgba(0,0,0,0.2)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
@@ -144,11 +145,15 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>Full content</span>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={() => navigator.clipboard.writeText(selectedText)}
-                  style={{ fontSize: 12, fontWeight: 600, color: "#38d091", background: "none", border: "1px solid #38d091", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit" }}>
-                  Copy
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedText);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  style={{ fontSize: 12, fontWeight: 600, color: copied ? "#fff" : "#38d091", background: copied ? "#38d091" : "none", border: "1px solid #38d091", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
+                  {copied ? "Copied ✓" : "Copy"}
                 </button>
-                <button onClick={() => setSelectedText(null)}
+                <button onClick={() => { setSelectedText(null); setCopied(false); }}
                   style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa", lineHeight: 1, padding: "0 4px" }}>
                   ×
                 </button>
