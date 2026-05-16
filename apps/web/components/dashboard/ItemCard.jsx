@@ -19,6 +19,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [openMenuId, setOpenMenuId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [hoveredUrl, setHoveredUrl] = useState(null);
+  const [selectedText, setSelectedText] = useState(null);
   const kebabRefs = useRef({});
   const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
@@ -100,9 +101,18 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                   {item.content}
                 </a>
               ) : (
-                <p style={{ fontSize: 13, color: "#000", lineHeight: 1.6, wordBreak: "break-word", margin: 0, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden", fontWeight: 400, whiteSpace: "pre-wrap" }}>
-                  {item.content}
-                </p>
+                <>
+                  <p style={{ fontSize: 13, color: "#000", lineHeight: 1.6, wordBreak: "break-word", margin: 0, whiteSpace: "pre-wrap", fontWeight: 400, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {item.content}
+                  </p>
+                  {(item.content?.split("\n").length > 6 || item.content?.length > 300) && (
+                    <button
+                      onClick={() => setSelectedText(item.content)}
+                      style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#38d091", fontWeight: 600, padding: 0, fontFamily: "inherit" }}>
+                      Show more ↗
+                    </button>
+                  )}
+                </>
               )}
 
               {/* Source URL */}
@@ -124,6 +134,33 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         })}
       </div>
       <ImageModal imageData={selectedImage} onClose={() => setSelectedImage(null)} />
+      {selectedText && (
+        <div onClick={() => setSelectedText(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 680, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 40px rgba(0,0,0,0.2)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #f0f0f0" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>Full content</span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => navigator.clipboard.writeText(selectedText)}
+                  style={{ fontSize: 12, fontWeight: 600, color: "#38d091", background: "none", border: "1px solid #38d091", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit" }}>
+                  Copy
+                </button>
+                <button onClick={() => setSelectedText(null)}
+                  style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa", lineHeight: 1, padding: "0 4px" }}>
+                  ×
+                </button>
+              </div>
+            </div>
+            {/* Content */}
+            <pre style={{ margin: 0, padding: "24px", overflowY: "auto", fontSize: 13, lineHeight: 1.7, color: "#000", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "inherit" }}>
+              {selectedText}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
