@@ -13,6 +13,7 @@ const rateLimits = new Map();
  * @returns {boolean} - true if allowed, false if rate limited
  */
 function checkRateLimit(identifier, endpoint, limit = 10, windowMs = 60000) {
+  cleanupExpired(); // clean on every check instead of setInterval
   const key = `${identifier}:${endpoint}`;
   const now = Date.now();
   
@@ -140,12 +141,12 @@ export function applyRateLimit(req, path, userId = null) {
   return null;
 }
 
-// Clean up old rate limits periodically (every 5 minutes)
-setInterval(() => {
+// Clean up old rate limits on each check to prevent unbounded memory growth
+function cleanupExpired() {
   const now = Date.now();
   for (const [key, data] of rateLimits.entries()) {
-    if (now > data.resetTime + 300000) { // 5 minutes after reset
+    if (now > data.resetTime + 300000) {
       rateLimits.delete(key);
     }
   }
-}, 300000);
+}
