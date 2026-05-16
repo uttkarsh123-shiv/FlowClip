@@ -100,7 +100,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                   {item.content}
                 </a>
               ) : (
-                <p style={{ fontSize: 13, color: "#000", lineHeight: 1.6, wordBreak: "break-word", margin: 0, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden", fontWeight: 400 }}>
+                <p style={{ fontSize: 13, color: "#000", lineHeight: 1.6, wordBreak: "break-word", margin: 0, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden", fontWeight: 400, whiteSpace: "pre-wrap" }}>
                   {item.content}
                 </p>
               )}
