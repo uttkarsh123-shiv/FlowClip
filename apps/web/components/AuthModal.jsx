@@ -28,7 +28,14 @@ export default function AuthModal({ onClose, mode = "login" }) {
       onClose();
       router.push("/dashboard");
     } catch (err) {
-      setError(err.message); // was setCurrentMode — bug fixed
+      // Strip internal Convex error details — only show the human-readable message
+      const raw = err.message || "";
+      const clean = raw
+        .replace(/^Uncaught Error:\s*/i, "")
+        .replace(/\s+at handler\s*\(.*\)/i, "")
+        .replace(/\s*\(\.\.\/.*:\d+:\d+\)/g, "")
+        .trim();
+      setError(clean || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
