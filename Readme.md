@@ -2,46 +2,27 @@
 
 **Next.js, React.js, Convex, Chrome Extension API, GSAP, Tailwind CSS**
 
-A performant browser extension and web platform for seamless content capture workflows with custom session-based authentication and real-time synchronization.
-
-• **Architected** a high-performance browser extension and web platform serving seamless content capture workflows through optimized Chrome MV3 service workers and real-time data synchronization across distributed user sessions.
-
-• **Designed and implemented** custom session-based authentication with opaque access/refresh token rotation, PBKDF2 password hashing, secure cross-origin communication protocols, and fault-tolerant session management through automated token refresh workflows.
-
-• **Built** scalable full-stack architecture leveraging serverless Convex backend with optimized database indexing, modular React component library with 15+ reusable UI components, and performance-optimized frontend through code-splitting and lazy loading strategies.
+A browser extension and web dashboard for capturing text, links, and screenshots from any webpage with a double keypress — no tab switching, no friction.
 
 ---
 
-## Overview
+## What It Does
 
-FlowClip transforms productivity workflows by enabling instant content capture from any webpage without context switching. Built with modern web technologies and enterprise-grade security for reliable performance across devices.
-
-**Key Features:**
-- **Instant Capture**: Single keystroke (`Shift+S`) content extraction
-- **Multi-format Support**: Text, links, and screenshot capture
-- **Real-time Sync**: Cross-device synchronization with conflict resolution
-- **Enterprise Security**: JWT-based authentication with automatic token rotation
-- **Performance Optimized**: Code-splitting and lazy loading for fast load times
+- Press `S` twice on any page to capture a screenshot
+- Copy text or a link — a toast appears to save it to your dashboard
+- All clips sync in real time to your dashboard at `/dashboard`
+- Blocked on banking and payment sites (Chase, PayPal, Stripe, Coinbase, etc.)
 
 ---
 
-## Architecture
+## Stack
 
-**High-Performance Stack**
-
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Frontend** | Next.js 16, React 19, Tailwind CSS | Server-side rendering, component architecture |
-| **Backend** | Convex (serverless) | Real-time database, HTTP actions, auto-scaling |
-| **Authentication** | Custom JWT | Access/refresh tokens, secure session management |
-| **Extension** | Chrome MV3 | Content scripts, service workers, popup UI |
-| **Animations** | GSAP + ScrollTrigger | Performance-optimized UI interactions |
-| **Typography** | Plus Jakarta Sans | Consistent design system |
-
-**Performance Optimizations:**
-- Optimized event handling for responsive keystroke capture
-- Lazy loading and code-splitting for improved load times
-- WebSocket connections for real-time synchronization
+| Layer | Tech |
+|---|---|
+| Web app | Next.js 16, React 19, Tailwind CSS, GSAP |
+| Backend | Convex (serverless database + HTTP actions) |
+| Auth | Custom opaque tokens (access + refresh, database-backed sessions) |
+| Extension | Chrome MV3 — content script, service worker, popup |
 
 ---
 
@@ -50,127 +31,99 @@ FlowClip transforms productivity workflows by enabling instant content capture f
 ```
 FlowClip/
 ├── apps/
-│   ├── web/                  # Next.js web app
+│   ├── web/
 │   │   ├── app/
-│   │   │   ├── page.js       # Landing page
-│   │   │   └── dashboard/    # Protected dashboard route
+│   │   │   ├── page.js           # Landing page
+│   │   │   └── dashboard/        # Protected dashboard
 │   │   ├── components/
-│   │   │   ├── AuthModal.jsx
-│   │   │   ├── HowItWorks.jsx
-│   │   │   ├── ItemCard.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── Sidebar.jsx
-│   │   ├── hooks/
-│   │   │   └── useAuth.jsx
+│   │   │   ├── landing/          # Hero, Features, HowItWorks, FAQ, etc.
+│   │   │   └── dashboard/        # Navbar, Sidebar, ItemCard, modals
+│   │   ├── hooks/useAuth.jsx      # Auth state
 │   │   └── lib/
-│   │       └── auth.js       # Token management
-│   └── extension/
-│       └── src/
-│           ├── background/   # Service worker
-│           ├── content/      # Content script (Shift+S capture)
-│           └── popup/        # Extension popup UI
+│   │       ├── auth.js           # Token management + API calls
+│   │       └── sanitize.js       # Input validation utilities
+│   └── extension/src/
+│       ├── background/index.js   # Service worker — saves clips to Convex
+│       ├── content/index.js      # Keypress detection, toast UI, blocked domains
+│       └── popup/                # Extension popup with login + recent clips
 └── convex/
-    ├── schema.ts             # Database schema
-    ├── auth.js               # Auth HTTP endpoints
-    ├── items.js              # Clips CRUD
-    └── http.js               # HTTP router
+    ├── schema.ts                 # DB schema
+    ├── auth.js                   # Register, login, logout, refresh, getMe
+    ├── items.js                  # Create, read, delete clips
+    ├── http.js                   # HTTP router with rate limiting
+    └── lib/
+        ├── sanitize.js           # Server-side input validation
+        └── rateLimit.js          # IP + UserID hybrid rate limiting
 ```
 
 ---
 
-## Getting Started
+## Auth
 
-### Prerequisites
+Custom session-based auth — no third-party library.
 
-- Node.js 18+
-- A [Convex](https://convex.dev) account
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Set up Convex
-
-```bash
-npx convex dev
-```
-
-This starts the Convex backend and generates the `_generated` files.
-
-### 3. Configure environment variables
-
-Create `apps/web/.env.local`:
-
-```env
-NEXT_PUBLIC_CONVEX_URL=your_convex_url
-NEXT_PUBLIC_CONVEX_SITE_URL=your_convex_site_url
-```
-
-### 4. Run the web app
-
-```bash
-npm run dev:web
-```
-
-App runs at `http://localhost:3000`.
-
-### 5. Load the extension
-
-1. Open Chrome → `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked**
-4. Select the `apps/extension` folder
+- Passwords hashed with PBKDF2 (Web Crypto API, 100k iterations)
+- Access token: 15-minute expiry, auto-refreshed via refresh token
+- Refresh token: 30-day expiry, stored in `chrome.storage.local` (extension) and `localStorage` (web)
+- Sessions stored in Convex DB — can be invalidated server-side
 
 ---
 
-## How It Works
+## Security
 
-1. **Install** — Load the extension in Chrome
-2. **Capture** — Press `S twice` on any page to save text or links. Press `S` twice quickly to capture a screenshot
-3. **Access** — Open the dashboard at `/dashboard` to view, search, and manage all clips
-
----
-
-## Enterprise-Grade Security
-
-**Security Features:**
-- JWT-based access/refresh token rotation
-- PBKDF2 password hashing with salt
-- Input validation and sanitization
-- XSS protection through content filtering
-- Hybrid rate limiting (IP + UserID) for shared networks
-- Automatic token expiration and cleanup
-- Chrome storage for extension token persistence
+- Input validation and sanitization on both frontend and backend
+- XSS protection — dangerous URL schemes (`javascript:`, `data:`) blocked
+- Hybrid rate limiting (IP + UserID) — shared networks like college WiFi won't block other users
+- Blocked domain list — extension disabled on banking/payment/crypto sites
+- Auth errors sanitized before showing to users
 
 ---
 
 ## Database Schema
 
 ```
-users       — email, passwordHash, name, createdAt
-sessions    — userId, accessToken, refreshToken, expiry timestamps
-items       — type (text|link|image), content, url, imageData, userId, createdAt
+users    — email, passwordHash, name, createdAt
+sessions — userId, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, createdAt
+items    — type (text | link | image), content, url, imageData, userId, createdAt
 ```
 
 ---
 
-## Routes
+## Getting Started
 
-| Route | Description |
-|---|---|
-| `/` | Landing page (redirects to `/dashboard` if logged in) |
-| `/dashboard` | Protected clips dashboard (redirects to `/` if not logged in) |
+**Prerequisites:** Node.js 18+, a [Convex](https://convex.dev) account
+
+```bash
+# Install dependencies
+npm install
+
+# Start Convex backend
+npx convex dev
+
+# Start web app
+npm run dev:web
+```
+
+Create `apps/web/.env.local`:
+
+```env
+NEXT_PUBLIC_CONVEX_URL=your_convex_url
+NEXT_PUBLIC_CONVEX_SITE_URL=your_convex_site_url
+NEXT_PUBLIC_EXTENSION_ID=your_chrome_extension_id
+```
+
+**Load the extension:**
+1. Go to `chrome://extensions`
+2. Enable Developer mode
+3. Load unpacked → select `apps/extension`
 
 ---
 
 ## Extension Permissions
 
-| Permission | Reason |
+| Permission | Why |
 |---|---|
-| `clipboardRead` | Read copied text |
+| `clipboardRead` | Read copied text on `Ctrl+C` |
 | `storage` | Store auth tokens |
 | `activeTab` | Get current page URL |
-| `tabs` | Open dashboard from popup |
-what
+| `tabs` | Capture screenshot, open dashboard |
