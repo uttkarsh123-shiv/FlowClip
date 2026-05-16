@@ -1,12 +1,12 @@
 # FlowClip
 
-**Next.js, React.js, Convex, Chrome Extension API, GSAP, JWT**
+**Next.js, React.js, Convex, Chrome Extension API, GSAP, Tailwind CSS**
 
-A high-performance browser extension and web platform for seamless content capture workflows with enterprise-grade authentication and real-time synchronization.
+A performant browser extension and web platform for seamless content capture workflows with custom session-based authentication and real-time synchronization.
 
 • **Architected** a high-performance browser extension and web platform serving seamless content capture workflows through optimized Chrome MV3 service workers and real-time data synchronization across distributed user sessions.
 
-• **Designed and implemented** enterprise-grade authentication infrastructure with JWT-based token rotation, secure cross-origin communication protocols, and fault-tolerant session management through automated refresh token workflows.
+• **Designed and implemented** custom session-based authentication with opaque access/refresh token rotation, PBKDF2 password hashing, secure cross-origin communication protocols, and fault-tolerant session management through automated token refresh workflows.
 
 • **Built** scalable full-stack architecture leveraging serverless Convex backend with optimized database indexing, modular React component library with 15+ reusable UI components, and performance-optimized frontend through code-splitting and lazy loading strategies.
 
@@ -41,7 +41,6 @@ FlowClip transforms productivity workflows by enabling instant content capture f
 **Performance Optimizations:**
 - Optimized event handling for responsive keystroke capture
 - Lazy loading and code-splitting for improved load times
-- IndexedDB caching for offline functionality
 - WebSocket connections for real-time synchronization
 
 ---
@@ -174,3 +173,4 @@ items       — type (text|link|image), content, url, imageData, userId, created
 | `storage` | Store auth tokens |
 | `activeTab` | Get current page URL |
 | `tabs` | Open dashboard from popup |
+what

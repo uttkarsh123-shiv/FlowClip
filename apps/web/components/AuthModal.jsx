@@ -30,6 +30,13 @@ export default function AuthModal({ onClose, mode = "login" }) {
     } catch (err) {
       // Strip internal Convex error details — only show the human-readable message
       const raw = err.message || "";
+      
+      // Map known technical errors to friendly messages
+      if (raw.toLowerCase().includes("failed to fetch") || raw.toLowerCase().includes("networkerror") || raw.toLowerCase().includes("network request failed")) {
+        setError("Connection error. Please check your internet and try again.");
+        return;
+      }
+
       const clean = raw
         .replace(/^Uncaught Error:\s*/i, "")
         .replace(/\s+at handler\s*\(.*\)/i, "")
