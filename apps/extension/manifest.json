@@ -7,6 +7,13 @@
   "host_permissions": [
       "<all_urls>"
   ],
+  "externally_connectable": {
+    "matches": [
+      "http://localhost:3000/*",
+      "https://flowclip.vercel.app/*",
+      "https://*.vercel.app/*"
+    ]
+  },
   "background": {
     "service_worker": "src/background/index.js"
   },

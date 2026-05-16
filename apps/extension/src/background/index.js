@@ -5,6 +5,14 @@ let pendingScreenshot = null;
 
 // Listen for copy events from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Health check from web dashboard — responds with login status
+  if (message.type === "PING") {
+    chrome.storage.local.get(["accessToken", "accessTokenExpiresAt"], (data) => {
+      const loggedIn = !!(data.accessToken && Date.now() < data.accessTokenExpiresAt - 30000);
+      sendResponse({ status: "ok", loggedIn });
+    });
+    return true; // keep channel open for async response
+  }
   if (message.type === "COPY_DETECTED") {
     pendingCapture = {
       content: message.payload.content,

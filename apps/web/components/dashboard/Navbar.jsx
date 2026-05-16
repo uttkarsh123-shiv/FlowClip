@@ -1,9 +1,47 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 
+// Replace with your actual extension ID from chrome://extensions
+const EXTENSION_ID = process.env.NEXT_PUBLIC_EXTENSION_ID;
+
+function checkExtensionStatus() {
+  return new Promise((resolve) => {
+    if (!EXTENSION_ID || typeof chrome === "undefined" || !chrome?.runtime?.sendMessage) {
+      resolve({ installed: false, loggedIn: false });
+      return;
+    }
+    try {
+      chrome.runtime.sendMessage(EXTENSION_ID, { type: "PING" }, (response) => {
+        if (chrome.runtime.lastError || !response) {
+          resolve({ installed: false, loggedIn: false });
+        } else {
+          resolve({ installed: true, loggedIn: response.loggedIn });
+        }
+      });
+    } catch {
+      resolve({ installed: false, loggedIn: false });
+    }
+  });
+}
+
 export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSearch, clipCount }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [extensionStatus, setExtensionStatus] = useState({ installed: false, loggedIn: false });
   const menuRef = useRef(null);
+
+  // Poll extension status every 10 seconds
+  useEffect(() => {
+    let cancelled = false;
+
+    async function poll() {
+      const status = await checkExtensionStatus();
+      if (!cancelled) setExtensionStatus(status);
+    }
+
+    poll();
+    const interval = setInterval(poll, 10000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -14,6 +52,21 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
   }, []);
 
   const initial = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
+
+  // Determine dot color and label
+  const dotColor = extensionStatus.loggedIn
+    ? "#38d091"                          // green — extension installed + logged in
+    : extensionStatus.installed
+      ? "#f59e0b"                        // amber — extension installed but not logged in
+      : "#d1d5db";                       // grey — extension not installed
+
+  const statusLabel = extensionStatus.loggedIn
+    ? "live"
+    : extensionStatus.installed
+      ? "sign in to extension"
+      : "extension offline";
+
+  const statusColor = extensionStatus.loggedIn ? "#999" : extensionStatus.installed ? "#f59e0b" : "#ccc";
 
   return (
     <nav style={{
@@ -67,8 +120,8 @@ export default function Navbar({ onMenuClick, onLogout, user, searchQuery, onSea
       <span style={{ fontSize: 14, color: "#999", fontWeight: 600 }}>{clipCount ?? 0} clips</span>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#38d091", display: "inline-block" }} />
-        <span style={{ fontSize: 13, color: "#999" }}>live</span>
+        <span style={{ width: 9, height: 9, borderRadius: "50%", background: dotColor, display: "inline-block", flexShrink: 0 }} />
+        <span style={{ fontSize: 13, color: statusColor, whiteSpace: "nowrap" }}>{statusLabel}</span>
       </div>
 
       {/* Avatar */}

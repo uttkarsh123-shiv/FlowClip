@@ -12,6 +12,8 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as items from "../items.js";
 import type * as lib_authHelper from "../lib/authHelper.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
+import type * as lib_sanitize from "../lib/sanitize.js";
 import type * as settings from "../settings.js";
 
 import type {
@@ -25,6 +27,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   items: typeof items;
   "lib/authHelper": typeof lib_authHelper;
+  "lib/rateLimit": typeof lib_rateLimit;
+  "lib/sanitize": typeof lib_sanitize;
   settings: typeof settings;
 }>;
 
