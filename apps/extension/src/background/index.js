@@ -1,4 +1,4 @@
-const CONVEX_SITE_URL = "https://fantastic-condor-84.eu-west-1.convex.site";
+const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
 
 // Listen for messages from content script and web dashboard
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -113,6 +113,25 @@ async function saveScreenshotToConvex(data) {
   const accessToken = await getValidAccessToken();
   if (!accessToken) return;
   try {
+    // Step 1: Get upload URL from Convex Storage
+    const urlRes = await fetch(`${CONVEX_SITE_URL}/storage/generate-upload-url`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${accessToken}` },
+    });
+    if (!urlRes.ok) throw new Error("Failed to get upload URL");
+    const { uploadUrl } = await urlRes.json();
+
+    // Step 2: Convert base64 dataUrl to blob and upload
+    const blob = dataUrlToBlob(data.imageData);
+    const uploadRes = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": blob.type },
+      body: blob,
+    });
+    if (!uploadRes.ok) throw new Error("Failed to upload image");
+    const { storageId } = await uploadRes.json();
+
+    // Step 3: Save item with storageId (no base64 in DB)
     await fetch(`${CONVEX_SITE_URL}/clips`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
@@ -120,10 +139,22 @@ async function saveScreenshotToConvex(data) {
         type: "image",
         content: "Screenshot captured",
         url: data.url,
-        imageData: data.imageData,
+        imageStorageId: storageId,
       }),
     });
   } catch (e) {
     console.error("Failed to save screenshot", e);
   }
+}
+
+// Convert base64 dataUrl to Blob
+function dataUrlToBlob(dataUrl) {
+  const [header, base64] = dataUrl.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
 }

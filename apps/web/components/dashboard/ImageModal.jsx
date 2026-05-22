@@ -6,11 +6,25 @@ export default function ImageModal({ imageData, onClose }) {
 
   if (!imageData) return null;
 
-  const handleDownload = () => {
-    const a = document.createElement("a");
-    a.href = imageData;
-    a.download = `flowclip-screenshot-${Date.now()}.jpg`;
-    a.click();
+  const handleDownload = async () => {
+    // imageData can be a URL (Convex Storage) or base64
+    if (imageData.startsWith("http")) {
+      // Fetch the image and download as blob
+      const res = await fetch(imageData);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `flowclip-screenshot-${Date.now()}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      // Legacy base64
+      const a = document.createElement("a");
+      a.href = imageData;
+      a.download = `flowclip-screenshot-${Date.now()}.jpg`;
+      a.click();
+    }
     setDownloaded(true);
     setTimeout(() => setDownloaded(false), 2000);
   };

@@ -98,8 +98,8 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               </div>
 
               {/* Content */}
-              {item.type === "image" && item.imageData ? (
-                <img src={item.imageData} alt="Screenshot" onClick={() => setSelectedImage(item.imageData)}
+              {item.type === "image" && (item.imageUrl || item.imageData) ? (
+                <img src={item.imageUrl || item.imageData} alt="Screenshot" onClick={() => setSelectedImage(item.imageUrl || item.imageData)}
                   style={{ width: "100%", borderRadius: 8, maxHeight: 200, objectFit: "cover", cursor: "pointer", display: "block" }} />
               ) : item.type === "link" ? (
                 <a href={item.content} target="_blank" rel="noreferrer"

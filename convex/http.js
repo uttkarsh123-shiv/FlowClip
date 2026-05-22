@@ -23,7 +23,7 @@ function json(data, status = 200) {
 
 // ─── CORS preflight for all routes ───────────────────────────────────────────
 
-for (const path of ["/clips", "/auth/register", "/auth/login", "/auth/logout", "/auth/refresh", "/auth/me"]) {
+for (const path of ["/clips", "/auth/register", "/auth/login", "/auth/logout", "/auth/refresh", "/auth/me", "/storage/generate-upload-url"]) {
   http.route({
     path,
     method: "OPTIONS",
@@ -258,6 +258,20 @@ http.route({
     
     const items = await ctx.runQuery(api.items.getItems, { userId });
     return json(items);
+  }),
+});
+
+// ─── Storage routes ───────────────────────────────────────────────────────────
+
+http.route({
+  path: "/storage/generate-upload-url",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const userId = await getUserIdFromRequest(ctx, req);
+    if (!userId) return json({ error: "Unauthorized" }, 401);
+
+    const uploadUrl = await ctx.storage.generateUploadUrl();
+    return json({ uploadUrl });
   }),
 });
 

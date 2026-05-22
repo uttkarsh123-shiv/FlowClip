@@ -7,38 +7,33 @@ export const createItem = mutation({
     type: v.union(v.literal("text"), v.literal("link"), v.literal("image")),
     content: v.string(),
     url: v.optional(v.string()),
-    imageData: v.optional(v.string()),
+    imageData: v.optional(v.string()),      // legacy base64
+    imageStorageId: v.optional(v.id("_storage")), // new Convex Storage
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // Sanitize content - remove dangerous content but preserve text
     const sanitizedContent = sanitizeText(args.content);
-    
-    // Sanitize URL if provided
     const sanitizedUrl = args.url ? sanitizeUrl(args.url) : undefined;
-    
-    // Validate that we have actual content
-    if (!sanitizedContent && !args.imageData) {
+
+    if (!sanitizedContent && !args.imageData && !args.imageStorageId) {
       throw new Error("Content cannot be empty");
     }
-    
-    // For image data, basic validation (should be base64)
-    let sanitizedImageData = args.imageData;
+
     if (args.imageData) {
-      if (typeof args.imageData !== 'string' || args.imageData.length > 5000000) { // ~5MB limit
+      if (typeof args.imageData !== 'string' || args.imageData.length > 5000000) {
         throw new Error("Invalid image data");
       }
-      // Basic base64 validation
       if (!args.imageData.startsWith('data:image/')) {
         throw new Error("Invalid image format");
       }
     }
-    
+
     return await ctx.db.insert("items", {
       type: args.type,
       content: sanitizedContent,
       url: sanitizedUrl,
-      imageData: sanitizedImageData,
+      imageData: args.imageData,
+      imageStorageID: args.imageStorageId,
       userId: args.userId,
       createdAt: Date.now(),
     });
@@ -48,11 +43,20 @@ export const createItem = mutation({
 export const getItems = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const items = await ctx.db
       .query("items")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .order("desc")
       .collect();
+
+    // Generate URLs for items using Convex Storage
+    return await Promise.all(items.map(async (item) => {
+      if (item.imageStorageID) {
+        const imageUrl = await ctx.storage.getUrl(item.imageStorageID);
+        return { ...item, imageUrl };
+      }
+      return item;
+    }));
   },
 });
 

@@ -26,6 +26,7 @@ export default defineSchema({
     content: v.string(),
     url: v.optional(v.string()),
     imageData: v.optional(v.string()),
+    imageStorageID: v.optional(v.id("_storage")),
     userId: v.id("users"),
     createdAt: v.number(),
   }).index("by_user", ["userId"]),

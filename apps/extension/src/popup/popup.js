@@ -1,4 +1,4 @@
-const CONVEX_SITE_URL = "https://fantastic-condor-84.eu-west-1.convex.site";
+const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
 
 // ─── Token helpers (chrome.storage) ──────────────────────────────────────────
 
