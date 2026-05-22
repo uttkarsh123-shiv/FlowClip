@@ -44,9 +44,16 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
 
       {items?.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 80 }}>
-          <div style={{ width: 64, height: 64, background: "#ecfdf5", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 28 }}>📋</div>
-          <p style={{ color: "#000", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No clips yet</p>
-          <p style={{ color: "#999", fontSize: 14, fontWeight: 400 }}>Press Shift+S to start capturing</p>
+          <div style={{ width: 64, height: 64, background: "#f4f4f5", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+              <line x1="9" y1="12" x2="15" y2="12"/>
+              <line x1="9" y1="16" x2="13" y2="16"/>
+            </svg>
+          </div>
+          <p style={{ color: "#000", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No clips saved yet</p>
+          <p style={{ color: "#999", fontSize: 14, fontWeight: 400 }}>Copy text or press S twice to capture a screenshot</p>
         </div>
       )}
 
