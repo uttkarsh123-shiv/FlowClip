@@ -5,8 +5,7 @@
   "workspaces": [
     "apps/web",
     "apps/extension",
-    "convex",
-    "shared"
+    "convex"
   ],
   "dependencies": {
     "convex": "^1.36.0"
