@@ -49,14 +49,20 @@ export const getItems = query({
       .order("desc")
       .collect();
 
-    // Generate URLs for items using Convex Storage
-    return await Promise.all(items.map(async (item) => {
+    // Generate URLs for items using Convex Storage — allSettled so one failure doesn't break the whole query
+    const results = await Promise.allSettled(items.map(async (item) => {
       if (item.imageStorageID) {
         const imageUrl = await ctx.storage.getUrl(item.imageStorageID);
         return { ...item, imageUrl };
       }
       return item;
     }));
+
+    return results.map((result, i) => {
+      if (result.status === "fulfilled") return result.value;
+      // Storage URL failed — return item without imageUrl, card handles gracefully
+      return items[i];
+    });
   },
 });
 
