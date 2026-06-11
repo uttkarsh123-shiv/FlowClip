@@ -49,7 +49,25 @@ async function getValidAccessToken() {
   }
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
+// ─── Error sanitization ───────────────────────────────────────────────────────
+
+function sanitizeError(err) {
+  const raw = (err instanceof Error ? err.message : String(err)) || "";
+
+  if (raw.toLowerCase().includes("failed to fetch") ||
+      raw.toLowerCase().includes("networkerror") ||
+      raw.toLowerCase().includes("network request failed")) {
+    return "Connection error. Check your internet and try again.";
+  }
+
+  const clean = raw
+    .replace(/^Uncaught Error:\s*/i, "")
+    .replace(/\s+at handler\s*\(.*\)/i, "")
+    .replace(/\s*\(\.\.\/.*:\d+:\d+\)/g, "")
+    .trim();
+
+  return clean || "Something went wrong. Please try again.";
+}
 
 function showLoginView() {
   document.getElementById("login-view").style.display = "flex";
@@ -94,7 +112,7 @@ document.getElementById("login-btn").addEventListener("click", async () => {
     showClipsView();
     loadClips();
   } catch (e) {
-    errorEl.textContent = e.message;
+    errorEl.textContent = sanitizeError(e);
   } finally {
     btn.disabled = false;
     btn.textContent = "Sign in";
@@ -133,10 +151,12 @@ async function loadClips() {
     const res = await fetch(`${CONVEX_SITE_URL}/clips`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+    if (!res.ok) throw new Error("Failed to load clips");
     allClips = await res.json();
     renderClips(allClips);
   } catch (e) {
-    console.error("Failed to load clips", e);
+    const container = document.getElementById("clips");
+    if (container) container.innerHTML = `<div id="empty" style="color:#f87171;">${sanitizeError(e)}</div>`;
   }
 }
 
