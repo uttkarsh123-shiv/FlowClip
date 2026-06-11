@@ -2,8 +2,14 @@ const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
 
 // Listen for messages from content script and web dashboard
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Health check from web dashboard — responds with login status
   if (message.type === "PING") {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://flowclip-two.vercel.app",
+    ];
+    const senderOrigin = sender.origin || sender.url?.split("/").slice(0, 3).join("/");
+    if (!allowedOrigins.includes(senderOrigin)) return;
+
     chrome.storage.local.get(["accessToken", "accessTokenExpiresAt"], (data) => {
       const loggedIn = !!(data.accessToken && Date.now() < data.accessTokenExpiresAt - 30000);
       sendResponse({ status: "ok", loggedIn });
