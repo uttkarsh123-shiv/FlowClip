@@ -24,6 +24,7 @@ export default defineSchema({
   items: defineTable({
     type: v.optional(v.union(v.literal("text"), v.literal("link"), v.literal("image"))),
     content: v.string(),
+    embedding: v.optional(v.array(v.float64())),
     url: v.optional(v.string()),
     imageData: v.optional(v.string()),
     imageStorageID: v.optional(v.id("_storage")),
