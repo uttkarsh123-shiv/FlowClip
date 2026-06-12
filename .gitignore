@@ -35,3 +35,6 @@ Thumbs.db
 # Misc
 *.tsbuildinfo
 .cache/
+
+# Backup files
+*.zip
