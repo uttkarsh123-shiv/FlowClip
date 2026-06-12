@@ -38,3 +38,7 @@ Thumbs.db
 
 # Backup files
 *.zip
+
+# Docs (except README)
+*.md
+!README.md
