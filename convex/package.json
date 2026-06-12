@@ -6,6 +6,7 @@
     "dev": "convex dev"
   },
   "dependencies": {
+    "@google/genai": "^0.7.0",
     "convex": "^1.36.0"
   }
 }

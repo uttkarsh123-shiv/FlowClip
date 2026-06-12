@@ -23,7 +23,7 @@ function json(data, status = 200) {
 
 // ─── CORS preflight for all routes ───────────────────────────────────────────
 
-for (const path of ["/clips", "/auth/register", "/auth/login", "/auth/logout", "/auth/refresh", "/auth/me", "/storage/generate-upload-url"]) {
+for (const path of ["/clips", "/clips/search", "/auth/register", "/auth/login", "/auth/logout", "/auth/refresh", "/auth/me", "/storage/generate-upload-url"]) {
   http.route({
     path,
     method: "OPTIONS",
@@ -222,18 +222,26 @@ http.route({
       }
 
       if (body.type === "image" && body.imageData) {
-        await ctx.runMutation(api.items.createItem, {
+        await ctx.runAction(api.actions.createItemWithEmbedding, {
           type: "image",
           content: body.content || "Screenshot captured",
           url: body.url,
           imageData: body.imageData,
           userId,
         });
+      } else if (body.type === "image" && body.imageStorageId) {
+        await ctx.runAction(api.actions.createItemWithEmbedding, {
+          type: "image",
+          content: body.content || "Screenshot captured",
+          url: body.url,
+          imageStorageId: body.imageStorageId,
+          userId,
+        });
       } else {
         const { content, url } = body;
         const isUrl = /^https?:\/\//i.test(content?.trim());
         const type = isUrl ? "link" : "text";
-        await ctx.runMutation(api.items.createItem, { type, content, url, userId });
+        await ctx.runAction(api.actions.createItemWithEmbedding, { type, content, url, userId });
       }
 
       return json({ ok: true });
@@ -272,6 +280,34 @@ http.route({
 
     const uploadUrl = await ctx.storage.generateUploadUrl();
     return json({ uploadUrl });
+  }),
+});
+
+// ─── Semantic search route ────────────────────────────────────────────────────
+
+http.route({
+  path: "/clips/search",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const userId = await getUserIdFromRequest(ctx, req);
+    if (!userId) return json({ error: "Unauthorized" }, 401);
+
+    try {
+      const { query } = await req.json();
+      if (!query || typeof query !== "string" || query.trim().length === 0) {
+        return json({ error: "Query is required" }, 400);
+      }
+
+      const results = await ctx.runAction(api.semanticSearch.semanticSearch, {
+        query: query.trim(),
+        userId,
+        topK: 10,
+      });
+
+      return json(results);
+    } catch (e) {
+      return json({ error: e.message }, 400);
+    }
   }),
 });
 

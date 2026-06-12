@@ -72,3 +72,34 @@ export const deleteItem = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Used by backfillEmbeddings action — returns ALL items regardless of type
+export const getAllItemsForBackfill = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("items").collect();
+  },
+});
+// Images are excluded since they have no meaningful text to embed
+export const getItemsWithEmbeddings = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("items")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.neq(q.field("type"), "image"))
+      .collect();
+  },
+});
+
+// Called after createItem to store the embedding — separate mutation so it
+// doesn't block the save response waiting for Gemini API
+export const updateEmbedding = mutation({
+  args: {
+    id: v.id("items"),
+    embedding: v.array(v.float64()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { embedding: args.embedding });
+  },
+});
