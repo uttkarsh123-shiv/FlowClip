@@ -6,6 +6,9 @@ import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
 import KebabMenu from "./KebabMenu.jsx";
 import { useAuth } from "@/hooks/useAuth";
+import { getValidAccessToken } from "@/lib/auth";
+
+const CONVEX_SITE_URL = process.env.NEXT_PUBLIC_CONVEX_SITE_URL;
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeBadge = {
@@ -21,6 +24,9 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [hoveredUrl, setHoveredUrl] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [semanticResults, setSemanticResults] = useState(null); // null = not searching
+  const [searchLoading, setSearchLoading] = useState(false);
+  const debounceRef = useRef(null);
   const kebabRefs = useRef({});
   const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
@@ -29,14 +35,71 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
     if (items && onCountChange) onCountChange(items.length);
   }, [items?.length]);
 
-  const filteredItems = items
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!searchQuery.trim() || !user) {
+      setSemanticResults(null); 
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const accessToken = await getValidAccessToken();
+        if (!accessToken) return;
+
+        const res = await fetch(`${CONVEX_SITE_URL}/clips/search`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ query: searchQuery.trim() }),
+        });
+
+        if (!res.ok) throw new Error("Search failed");
+        const results = await res.json();
+        setSemanticResults(results);
+      } catch {
+        setSemanticResults(null);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [searchQuery, user]);
+
+  const baseItems = searchQuery.trim() && semanticResults !== null ? semanticResults : items;
+
+  const filteredItems = baseItems
     ?.filter((item) => activeType === "all" || item.type === activeType)
-    ?.filter((item) => !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase()));
+    ?.filter((item) => {
+      if (searchQuery.trim() && semanticResults !== null) return true; 
+      return !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
   const handleDelete = (id) => { deleteItem({ id }); setOpenMenuId(null); };
 
   return (
     <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
+
+      {/* Search mode indicator */}
+      {searchQuery.trim() && (
+        <div style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
+          {searchLoading ? (
+            <span style={{ fontSize: 13, color: "#999" }}>Searching...</span>
+          ) : semanticResults !== null ? (
+            <>
+              <span style={{ fontSize: 11, fontWeight: 700, background: "#38d091", color: "#fff", padding: "3px 8px", borderRadius: 4, letterSpacing: "0.4px" }}>SEMANTIC</span>
+              <span style={{ fontSize: 13, color: "#999" }}>{filteredItems?.length ?? 0} result{filteredItems?.length !== 1 ? "s" : ""} for "{searchQuery}"</span>
+            </>
+          ) : (
+            <span style={{ fontSize: 13, color: "#999" }}>{filteredItems?.length ?? 0} result{filteredItems?.length !== 1 ? "s" : ""}</span>
+          )}
+        </div>
+      )}
 
       {!items && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
@@ -54,6 +117,13 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
           </div>
           <p style={{ color: "#000", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No clips saved yet</p>
           <p style={{ color: "#999", fontSize: 14, fontWeight: 400 }}>Copy text or press S twice to capture a screenshot</p>
+        </div>
+      )}
+
+      {searchQuery.trim() && !searchLoading && filteredItems?.length === 0 && items?.length > 0 && (
+        <div style={{ textAlign: "center", marginTop: 60 }}>
+          <p style={{ color: "#000", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>No results found</p>
+          <p style={{ color: "#999", fontSize: 13 }}>Try different keywords or clear the search</p>
         </div>
       )}
 
