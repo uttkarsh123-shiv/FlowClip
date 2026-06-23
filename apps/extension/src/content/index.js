@@ -1,18 +1,14 @@
-// Track double S press for screenshot
 let lastSPress = 0;
 let lastCaptured = null;
 
-// Safe message sender — guards against invalidated extension context
 function sendMsg(payload) {
   if (!chrome?.runtime?.id) return;
   try {
     chrome.runtime.sendMessage(payload);
   } catch {
-    // extension context invalidated — silently ignore
   }
 }
 
-// Block financial/crypto domains
 const BLOCKED_HOSTNAMES = [
   "chase.com", "wellsfargo.com", "bankofamerica.com", "citibank.com",
   "barclays.co.uk", "hsbc.com", "lloydsbank.com", "santander.com",
@@ -30,8 +26,6 @@ function isBlockedDomain(url) {
     return false;
   }
 }
-
-// ── Screenshot ────────────────────────────────────────────────────────────────
 
 function captureScreenshot() {
   if (isBlockedDomain(window.location.href)) return;
@@ -82,8 +76,6 @@ function showScreenshotToast(imageData, sourceUrl) {
   backdrop.addEventListener("click", () => { clearTimeout(timer); cleanup(); });
 }
 
-// ── Copy capture ──────────────────────────────────────────────────────────────
-
 function handleCapture(text) {
   if (!text || text.length <= 5) return;
   if (isBlockedDomain(window.location.href)) return;
@@ -133,8 +125,6 @@ function showToast(text, sourceUrl) {
   });
 }
 
-// ── Event listeners ───────────────────────────────────────────────────────────
-
 document.addEventListener("copy", () => {
   handleCapture(window.getSelection().toString());
 });
@@ -161,7 +151,6 @@ document.addEventListener("keydown", (e) => {
         const text = await navigator.clipboard.readText();
         handleCapture(text);
       } catch {
-        // clipboard-read permission not granted
       }
     }, 100);
   }

@@ -1,7 +1,5 @@
 const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
 
-// ─── Token helpers (chrome.storage) ──────────────────────────────────────────
-
 function getTokens() {
   return new Promise((resolve) => {
     chrome.storage.local.get(["accessToken", "refreshToken", "accessTokenExpiresAt"], resolve);
@@ -25,12 +23,10 @@ async function getValidAccessToken() {
   const { accessToken, refreshToken, accessTokenExpiresAt } = await getTokens();
   if (!refreshToken) return null;
 
-  // Check if access token is still valid (with 30s buffer)
   if (accessToken && Date.now() < accessTokenExpiresAt - 30000) {
     return accessToken;
   }
 
-  // Refresh it
   try {
     const res = await fetch(`${CONVEX_SITE_URL}/auth/refresh`, {
       method: "POST",
@@ -48,8 +44,6 @@ async function getValidAccessToken() {
     return null;
   }
 }
-
-// ─── Error sanitization ───────────────────────────────────────────────────────
 
 function sanitizeError(err) {
   const raw = (err instanceof Error ? err.message : String(err)) || "";
@@ -81,8 +75,6 @@ function showClipsView() {
   document.getElementById("clips-view").style.display = "block";
   document.getElementById("logout-btn").style.display = "inline-block";
 }
-
-// ─── Login ────────────────────────────────────────────────────────────────────
 
 document.getElementById("login-btn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
@@ -119,12 +111,9 @@ document.getElementById("login-btn").addEventListener("click", async () => {
   }
 });
 
-// Allow Enter key to submit login
 document.getElementById("password").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("login-btn").click();
 });
-
-// ─── Logout ───────────────────────────────────────────────────────────────────
 
 document.getElementById("logout-btn").addEventListener("click", async () => {
   const { accessToken } = await getTokens();
@@ -138,8 +127,6 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
   await clearTokens();
   showLoginView();
 });
-
-// ─── Clips ────────────────────────────────────────────────────────────────────
 
 let allClips = [];
 
@@ -170,7 +157,6 @@ function renderClips(clips) {
     return;
   }
 
-  // Show only top 5 clips
   const topClips = clips.slice(0, 5);
 
   container.innerHTML = topClips
@@ -210,8 +196,6 @@ function getClipPreview(content) {
   }
   return content;
 }
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.getElementById("open-dashboard").addEventListener("click", () => {
   chrome.tabs.create({ url: "https://flowclip.app" });

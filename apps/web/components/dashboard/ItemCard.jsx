@@ -1,6 +1,7 @@
 "use client";
 import { useQuery, useMutation } from "convex/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import debounce from "lodash/debounce";
 import { api } from "../../../../convex/_generated/api";
 import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
@@ -26,7 +27,6 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [copied, setCopied] = useState(false);
   const [semanticResults, setSemanticResults] = useState(null); // null = not searching
   const [searchLoading, setSearchLoading] = useState(false);
-  const debounceRef = useRef(null);
   const kebabRefs = useRef({});
   const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
@@ -35,15 +35,12 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
     if (items && onCountChange) onCountChange(items.length);
   }, [items?.length]);
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    if (!searchQuery.trim() || !user) {
-      setSemanticResults(null); 
-      return;
-    }
-
-    debounceRef.current = setTimeout(async () => {
+  const runSearch = useCallback(
+    debounce(async (query, currentUser) => {
+      if (!query.trim() || !currentUser) {
+        setSemanticResults(null);
+        return;
+      }
       setSearchLoading(true);
       try {
         const accessToken = await getValidAccessToken();
@@ -55,7 +52,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
             "Content-Type": "application/json",
             "Authorization": `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ query: searchQuery.trim() }),
+          body: JSON.stringify({ query: query.trim() }),
         });
 
         if (!res.ok) throw new Error("Search failed");
@@ -66,9 +63,18 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       } finally {
         setSearchLoading(false);
       }
-    }, 500);
+    }, 500),
+    []
+  );
 
-    return () => clearTimeout(debounceRef.current);
+  useEffect(() => {
+    if (!searchQuery.trim() || !user) {
+      runSearch.cancel();
+      setSemanticResults(null);
+      return;
+    }
+    runSearch(searchQuery, user);
+    return () => runSearch.cancel();
   }, [searchQuery, user]);
 
   const baseItems = searchQuery.trim() && semanticResults !== null ? semanticResults : items;

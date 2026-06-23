@@ -1,6 +1,5 @@
 const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
 
-// Listen for messages from content script and web dashboard
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "PING") {
     const allowedOrigins = [
@@ -25,7 +24,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "ok" });
   }
 
-  // Handle screenshot capture
   if (message.type === "CAPTURE_SCREENSHOT") {
     const tabUrl = message.payload.url || "";
     if (tabUrl.startsWith("chrome://") || tabUrl.startsWith("chrome-extension://") || tabUrl.startsWith("edge://")) {
@@ -46,7 +44,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  // User clicked Save on screenshot — payload comes directly from content script
   if (message.type === "SAVE_SCREENSHOT_CONFIRMED") {
     saveScreenshotToConvex({
       imageData: message.payload.imageData,
@@ -55,7 +52,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "saved" });
   }
 
-  // User clicked Save on text/link — payload comes directly from content script
   if (message.type === "SAVE_CONFIRMED") {
     saveToConvex({
       content: message.payload.content,
@@ -64,7 +60,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: "saved" });
   }
 
-  // User clicked Ignore
   if (message.type === "IGNORE_CONFIRMED") {
     sendResponse({ status: "ignored" });
   }
@@ -83,7 +78,6 @@ async function getValidAccessToken() {
         return;
       }
 
-      // Refresh
       try {
         const res = await fetch(`${CONVEX_SITE_URL}/auth/refresh`, {
           method: "POST",
@@ -119,7 +113,6 @@ async function saveScreenshotToConvex(data) {
   const accessToken = await getValidAccessToken();
   if (!accessToken) return;
   try {
-    // Step 1: Get upload URL from Convex Storage
     const urlRes = await fetch(`${CONVEX_SITE_URL}/storage/generate-upload-url`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${accessToken}` },
@@ -127,7 +120,6 @@ async function saveScreenshotToConvex(data) {
     if (!urlRes.ok) throw new Error("Failed to get upload URL");
     const { uploadUrl } = await urlRes.json();
 
-    // Step 2: Convert base64 dataUrl to blob and upload
     const blob = dataUrlToBlob(data.imageData);
     const uploadRes = await fetch(uploadUrl, {
       method: "POST",
@@ -137,7 +129,6 @@ async function saveScreenshotToConvex(data) {
     if (!uploadRes.ok) throw new Error("Failed to upload image");
     const { storageId } = await uploadRes.json();
 
-    // Step 3: Save item with storageId (no base64 in DB)
     await fetch(`${CONVEX_SITE_URL}/clips`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
@@ -153,7 +144,6 @@ async function saveScreenshotToConvex(data) {
   }
 }
 
-// Convert base64 dataUrl to Blob
 function dataUrlToBlob(dataUrl) {
   const [header, base64] = dataUrl.split(",");
   const mime = header.match(/:(.*?);/)[1];
