@@ -1,36 +1,37 @@
 const CONVEX_SITE_URL = process.env.NEXT_PUBLIC_CONVEX_SITE_URL;
 
-// ─── Token storage ────────────────────────────────────────────────────────────
+let _accessToken = null;
+let _accessTokenExpiresAt = 0;
 
 export function getAccessToken() {
-  return localStorage.getItem("accessToken");
+  return _accessToken;
 }
 
-export function getRefreshToken() {
-  return localStorage.getItem("refreshToken");
+function setAccessToken(token, expiresAt) {
+  _accessToken = token;
+  _accessTokenExpiresAt = expiresAt;
 }
 
-export function saveTokens({ accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt }) {
-  localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", refreshToken);
-  localStorage.setItem("accessTokenExpiresAt", accessTokenExpiresAt);
-  localStorage.setItem("refreshTokenExpiresAt", refreshTokenExpiresAt);
+function clearAccessToken() {
+  _accessToken = null;
+  _accessTokenExpiresAt = 0;
 }
 
-export function clearTokens() {
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("accessTokenExpiresAt");
-  localStorage.removeItem("refreshTokenExpiresAt");
+function isAccessTokenExpired() {
+  return Date.now() > _accessTokenExpiresAt - 30000;
 }
 
-export function isAccessTokenExpired() {
-  const expiresAt = localStorage.getItem("accessTokenExpiresAt");
-  if (!expiresAt) return true;
-  return Date.now() > parseInt(expiresAt) - 30000; // 30s buffer
+async function persistRefreshToken(refreshToken, refreshTokenExpiresAt) {
+  await fetch("/api/auth/set-cookie", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken, refreshTokenExpiresAt }),
+  });
 }
 
-// ─── API calls ────────────────────────────────────────────────────────────────
+async function clearRefreshCookie() {
+  await fetch("/api/auth/clear-cookie", { method: "POST" });
+}
 
 export async function register(email, password, name) {
   const res = await fetch(`${CONVEX_SITE_URL}/auth/register`, {
@@ -40,7 +41,8 @@ export async function register(email, password, name) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error);
-  saveTokens(data);
+  setAccessToken(data.accessToken, data.accessTokenExpiresAt);
+  await persistRefreshToken(data.refreshToken, data.refreshTokenExpiresAt);
   return data;
 }
 
@@ -52,45 +54,36 @@ export async function login(email, password) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error);
-  saveTokens(data);
+  setAccessToken(data.accessToken, data.accessTokenExpiresAt);
+  await persistRefreshToken(data.refreshToken, data.refreshTokenExpiresAt);
   return data;
 }
 
 export async function logout() {
-  const accessToken = getAccessToken();
-  if (accessToken) {
-    await fetch(`${CONVEX_SITE_URL}/auth/logout`, {
+  const token = getAccessToken();
+  if (token) {
+    fetch(`${CONVEX_SITE_URL}/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessToken }),
-    }).catch(() => {}); // best effort
+      body: JSON.stringify({ accessToken: token }),
+    }).catch(() => {});
   }
-  clearTokens();
+  clearAccessToken();
+  await clearRefreshCookie();
 }
 
 export async function refreshAccessToken() {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) throw new Error("No refresh token");
-
-  const res = await fetch(`${CONVEX_SITE_URL}/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
+  const res = await fetch("/api/auth/refresh", { method: "POST" });
   const data = await res.json();
   if (!res.ok) {
-    clearTokens();
+    clearAccessToken();
     throw new Error(data.error);
   }
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("accessTokenExpiresAt", data.accessTokenExpiresAt);
+  setAccessToken(data.accessToken, data.accessTokenExpiresAt);
   return data.accessToken;
 }
 
-// Returns a valid access token, refreshing if needed
 export async function getValidAccessToken() {
-  if (isAccessTokenExpired()) {
-    return await refreshAccessToken();
-  }
-  return getAccessToken();
+  if (!isAccessTokenExpired()) return getAccessToken();
+  return await refreshAccessToken();
 }

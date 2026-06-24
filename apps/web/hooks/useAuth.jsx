@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { getRefreshToken, getValidAccessToken, clearTokens } from "@/lib/auth";
+import { getValidAccessToken, logout } from "@/lib/auth";
 
 export function useAuth() {
   const [user, setUser] = useState(null);
@@ -8,31 +8,26 @@ export function useAuth() {
 
   async function checkAuth() {
     try {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) {
+      const accessToken = await getValidAccessToken();
+      if (!accessToken) {
         setUser(false);
         setLoading(false);
         return;
       }
 
-      const accessToken = await getValidAccessToken();
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/auth/me`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
       if (!res.ok) {
-        clearTokens();
+        await logout();
         setUser(false);
         setLoading(false);
         return;
       }
 
-      const userData = await res.json();
-      setUser(userData);
+      setUser(await res.json());
     } catch {
-      clearTokens();
       setUser(false);
     } finally {
       setLoading(false);
@@ -41,26 +36,7 @@ export function useAuth() {
 
   useEffect(() => {
     checkAuth();
-
-    // Re-check whenever localStorage changes (login/logout from same tab)
-    const handleStorage = () => checkAuth();
-    window.addEventListener("storage", handleStorage);
-
-    // Also poll every 500ms briefly after mount to catch same-tab login
-    const interval = setInterval(() => {
-      const token = getRefreshToken();
-      if (token && !user) checkAuth();
-    }, 500);
-
-    // Stop polling after 5s
-    const timeout = setTimeout(() => clearInterval(interval), 5000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
   }, []);
 
-  return { user, loading };
+  return { user, loading, refetch: checkAuth };
 }

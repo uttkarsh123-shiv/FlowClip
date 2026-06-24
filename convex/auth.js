@@ -2,9 +2,6 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { validateEmail, sanitizeName, validatePassword } from "./lib/sanitize.js";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-// PBKDF2 password hashing via Web Crypto API
 async function hashPassword(password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const encoder = new TextEncoder();
@@ -40,10 +37,8 @@ function generateToken() {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-const ACCESS_TOKEN_TTL  = 15 * 60 * 1000;           // 15 minutes
-const REFRESH_TOKEN_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-// ─── Mutations ───────────────────────────────────────────────────────────────
+const ACCESS_TOKEN_TTL  = 15 * 60 * 1000;
+const REFRESH_TOKEN_TTL = 30 * 24 * 60 * 60 * 1000;
 
 export const register = mutation({
   args: {
@@ -52,20 +47,11 @@ export const register = mutation({
     name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Validate email format
-    if (!validateEmail(args.email)) {
-      throw new Error("Invalid email format");
-    }
-    
-    // Validate password strength
-    if (!validatePassword(args.password)) {
-      throw new Error("Password must be between 8-128 characters");
-    }
-    
-    // Sanitize name if provided
+    if (!validateEmail(args.email)) throw new Error("Invalid email format");
+    if (!validatePassword(args.password)) throw new Error("Password must be 8-128 characters");
+
     const name = args.name ? sanitizeName(args.name) : undefined;
-    
-    // Check if email already exists
+
     const existing = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
@@ -91,16 +77,10 @@ export const login = mutation({
     password: v.string(),
   },
   handler: async (ctx, args) => {
-    // Validate email format
-    if (!validateEmail(args.email)) {
+    if (!validateEmail(args.email) || !validatePassword(args.password)) {
       throw new Error("Invalid email or password");
     }
-    
-    // Validate password
-    if (!validatePassword(args.password)) {
-      throw new Error("Invalid email or password");
-    }
-    
+
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
@@ -122,7 +102,6 @@ export const logout = mutation({
       .query("sessions")
       .withIndex("by_access_token", (q) => q.eq("accessToken", args.accessToken))
       .first();
-
     if (session) await ctx.db.delete(session._id);
     return { success: true };
   },
@@ -142,7 +121,13 @@ export const refreshToken = mutation({
       throw new Error("Refresh token expired, please login again");
     }
 
-    // Rotate access token
+    if (Date.now() < session.accessTokenExpiresAt - 30000) {
+      return {
+        accessToken: session.accessToken,
+        accessTokenExpiresAt: session.accessTokenExpiresAt,
+      };
+    }
+
     const newAccessToken = generateToken();
     const newExpiry = Date.now() + ACCESS_TOKEN_TTL;
     await ctx.db.patch(session._id, {
@@ -150,14 +135,9 @@ export const refreshToken = mutation({
       accessTokenExpiresAt: newExpiry,
     });
 
-    return {
-      accessToken: newAccessToken,
-      accessTokenExpiresAt: newExpiry,
-    };
+    return { accessToken: newAccessToken, accessTokenExpiresAt: newExpiry };
   },
 });
-
-// ─── Queries ─────────────────────────────────────────────────────────────────
 
 export const getMe = query({
   args: { accessToken: v.string() },
@@ -167,8 +147,7 @@ export const getMe = query({
       .withIndex("by_access_token", (q) => q.eq("accessToken", args.accessToken))
       .first();
 
-    if (!session) return null;
-    if (Date.now() > session.accessTokenExpiresAt) return null;
+    if (!session || Date.now() > session.accessTokenExpiresAt) return null;
 
     const user = await ctx.db.get(session.userId);
     if (!user) return null;
@@ -177,22 +156,6 @@ export const getMe = query({
   },
 });
 
-export const getMeByRefreshToken = query({
-  args: { refreshToken: v.string() },
-  handler: async (ctx, args) => {
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("by_refresh_token", (q) => q.eq("refreshToken", args.refreshToken))
-      .first();
-
-    if (!session) return null;
-    if (Date.now() > session.refreshTokenExpiresAt) return null;
-
-    return { userId: session.userId };
-  },
-});
-
-// ─── Internal helper ─────────────────────────────────────────────────────────
 
 async function createSession(ctx, userId) {
   const accessToken = generateToken();

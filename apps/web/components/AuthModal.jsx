@@ -24,25 +24,11 @@ export default function AuthModal({ onClose, mode = "login" }) {
       } else {
         await register(email, password, name);
       }
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new CustomEvent("flowclip:login"));
       onClose();
       router.push("/dashboard");
     } catch (err) {
-      // Strip internal Convex error details — only show the human-readable message
-      const raw = err.message || "";
-      
-      // Map known technical errors to friendly messages
-      if (raw.toLowerCase().includes("failed to fetch") || raw.toLowerCase().includes("networkerror") || raw.toLowerCase().includes("network request failed")) {
-        setError("Connection error. Please check your internet and try again.");
-        return;
-      }
-
-      const clean = raw
-        .replace(/^Uncaught Error:\s*/i, "")
-        .replace(/\s+at handler\s*\(.*\)/i, "")
-        .replace(/\s*\(\.\.\/.*:\d+:\d+\)/g, "")
-        .trim();
-      setError(clean || "Something went wrong. Please try again.");
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
