@@ -1,4 +1,33 @@
-const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
+// ─── Environment config ───────────────────────────────────────────────────────
+// Two Convex deployments: dev (fantastic-condor-84) and prod (polished-peccary-13)
+// The popup reads activeEnv from storage — set by the background script whenever
+// the dashboard PINGs the extension. Falls back to prod if never set.
+
+const CONVEX_URLS = {
+  dev:  "https://fantastic-condor-84.eu-west-1.convex.site",
+  prod: "https://polished-peccary-13.convex.site",
+};
+
+const DASHBOARD_URLS = {
+  dev:  "http://localhost:3000",
+  // TODO: replace with your EC2 domain once deployed, e.g. "https://yourdomain.com"
+  prod: "https://flowclip-two.vercel.app",
+};
+
+let CONVEX_SITE_URL = CONVEX_URLS.prod;
+let activeEnv = "prod";
+
+function initEnv() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(["activeEnv"], (data) => {
+      activeEnv = data.activeEnv ?? "prod";
+      CONVEX_SITE_URL = CONVEX_URLS[activeEnv];
+      resolve();
+    });
+  });
+}
+
+// ─── Token helpers (chrome.storage) ──────────────────────────────────────────
 
 function getTokens() {
   return new Promise((resolve) => {
@@ -45,6 +74,8 @@ async function getValidAccessToken() {
   }
 }
 
+// ─── Error sanitization ───────────────────────────────────────────────────────
+
 function sanitizeError(err) {
   const raw = (err instanceof Error ? err.message : String(err)) || "";
 
@@ -75,6 +106,8 @@ function showClipsView() {
   document.getElementById("clips-view").style.display = "block";
   document.getElementById("logout-btn").style.display = "inline-block";
 }
+
+// ─── Login ────────────────────────────────────────────────────────────────────
 
 document.getElementById("login-btn").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
@@ -115,6 +148,8 @@ document.getElementById("password").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("login-btn").click();
 });
 
+// ─── Logout ───────────────────────────────────────────────────────────────────
+
 document.getElementById("logout-btn").addEventListener("click", async () => {
   const { accessToken } = await getTokens();
   if (accessToken) {
@@ -127,6 +162,8 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
   await clearTokens();
   showLoginView();
 });
+
+// ─── Clips ────────────────────────────────────────────────────────────────────
 
 let allClips = [];
 
@@ -197,11 +234,14 @@ function getClipPreview(content) {
   return content;
 }
 
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
 document.getElementById("open-dashboard").addEventListener("click", () => {
-  chrome.tabs.create({ url: "https://flowclip.app" });
+  chrome.tabs.create({ url: DASHBOARD_URLS[activeEnv] });
 });
 
 async function init() {
+  await initEnv();
   const accessToken = await getValidAccessToken();
   if (accessToken) {
     showClipsView();

@@ -1,16 +1,43 @@
-const CONVEX_SITE_URL = "https://polished-peccary-13.convex.site";
+// Convex URLs per environment
+const CONVEX_URLS = {
+  dev:  "https://fantastic-condor-84.eu-west-1.convex.site",  // local Next.js
+  prod: "https://polished-peccary-13.convex.site",            // deployed Next.js (EC2 / Vercel)
+};
+
+// Map dashboard origins → which Convex deployment they use
+// TODO: replace "https://flowclip-two.vercel.app" with your EC2 domain once deployed
+const ORIGIN_ENV_MAP = {
+  "http://localhost:3000":           "dev",
+  "https://flowclip-two.vercel.app": "prod",
+};
+
+const ALLOWED_DASHBOARD_ORIGINS = Object.keys(ORIGIN_ENV_MAP);
+
+function getConvexUrl(origin) {
+  const env = ORIGIN_ENV_MAP[origin] ?? "prod";
+  return CONVEX_URLS[env];
+}
+
+// Default CONVEX_SITE_URL used by background-initiated saves (copy/screenshot).
+// Background saves are not triggered by a dashboard origin, so we read the last
+// known env from storage (set whenever the dashboard PINGs us).
+let CONVEX_SITE_URL = CONVEX_URLS.prod;
+
+chrome.storage.local.get(["activeEnv"], (data) => {
+  CONVEX_SITE_URL = CONVEX_URLS[data.activeEnv ?? "prod"];
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "PING") {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "https://flowclip-two.vercel.app",
-    ];
     const senderOrigin = sender.origin || sender.url?.split("/").slice(0, 3).join("/");
-    if (!allowedOrigins.includes(senderOrigin)) return;
+    if (!ALLOWED_DASHBOARD_ORIGINS.includes(senderOrigin)) return;
 
     chrome.storage.local.get(["accessToken", "accessTokenExpiresAt"], (data) => {
       const loggedIn = !!(data.accessToken && Date.now() < data.accessTokenExpiresAt - 30000);
+      // Remember which env the dashboard is running in so background saves use the right URL
+      const env = ORIGIN_ENV_MAP[senderOrigin] ?? "prod";
+      chrome.storage.local.set({ activeEnv: env });
+      CONVEX_SITE_URL = CONVEX_URLS[env];
       sendResponse({ status: "ok", loggedIn });
     });
     return true;
