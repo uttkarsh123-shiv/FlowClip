@@ -10,8 +10,7 @@ const CONVEX_URLS = {
 
 const DASHBOARD_URLS = {
   dev:  "http://localhost:3000",
-  // TODO: replace with your EC2 domain once deployed, e.g. "https://yourdomain.com"
-  prod: "https://flowclip-two.vercel.app",
+  prod: "https://flow-clip-web.vercel.app",
 };
 
 let CONVEX_SITE_URL = CONVEX_URLS.prod;

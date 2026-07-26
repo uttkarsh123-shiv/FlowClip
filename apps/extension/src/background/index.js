@@ -5,10 +5,9 @@ const CONVEX_URLS = {
 };
 
 // Map dashboard origins → which Convex deployment they use
-// TODO: replace "https://flowclip-two.vercel.app" with your EC2 domain once deployed
 const ORIGIN_ENV_MAP = {
-  "http://localhost:3000":           "dev",
-  "https://flowclip-two.vercel.app": "prod",
+  "http://localhost:3000":            "dev",
+  "https://flow-clip-web.vercel.app": "prod",
 };
 
 const ALLOWED_DASHBOARD_ORIGINS = Object.keys(ORIGIN_ENV_MAP);

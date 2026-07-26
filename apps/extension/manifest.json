@@ -10,7 +10,7 @@
   "externally_connectable": {
     "matches": [
       "http://localhost:3000/*",
-      "https://flowclip-two.vercel.app/*"
+      "https://flow-clip-web.vercel.app/*"
     ]
   },
   "background": {
