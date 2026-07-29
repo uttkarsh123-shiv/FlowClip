@@ -1,18 +1,14 @@
 # FlowClip
 
-**Next.js, React.js, Convex, Gemini AI, Chrome Extension API, GSAP, Tailwind CSS**
+A smart clipboard manager that automatically captures what you copy and screenshot across the web, syncs it to a personal dashboard, and lets you search through it semantically.
 
-A browser extension and web dashboard for capturing text, links, and screenshots from any webpage with a double keypress — no tab switching, no friction.
+**Live:** [flow-clip-web.vercel.app](https://flow-clip-web.vercel.app)
 
 ---
 
-## What It Does
+## How it works
 
-- Press `S` twice on any page to capture a screenshot
-- Copy text or a link — a toast appears to save it to your dashboard
-- All clips sync in real time to your dashboard at `/dashboard`
-- **Semantic search** — search clips by meaning, not just exact keywords (powered by Gemini embeddings)
-- Blocked on banking and payment sites (Chase, PayPal, Stripe, Coinbase, etc.)
+Install the Chrome extension (load unpacked). Every time you copy text or press `S` twice to take a screenshot, FlowClip shows a save/ignore toast. If you save, the clip is stored in your Convex database and instantly appears on the dashboard. Search works semantically — not just keyword matching.
 
 ---
 
@@ -20,137 +16,191 @@ A browser extension and web dashboard for capturing text, links, and screenshots
 
 | Layer | Tech |
 |---|---|
-| Web app | Next.js 16, React 19, Tailwind CSS, GSAP |
-| Backend | Convex (serverless database + HTTP actions + file storage) |
-| Auth | Custom opaque tokens (access + refresh, database-backed sessions) |
-| Extension | Chrome MV3 — content script, service worker, popup |
-| Semantic search | Gemini `gemini-embedding-2` + cosine similarity |
+| Web dashboard | Next.js 15, React, Tailwind CSS |
+| Backend + database | Convex (serverless, real-time) |
+| Auth | Custom — PBKDF2 hashing, session tokens |
+| Semantic search | Vector embeddings + cosine similarity |
+| File storage | Convex Storage |
+| Chrome extension | Manifest V3, vanilla JS |
+| Deployment | Vercel (Next.js), Convex Cloud (backend) |
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 FlowClip/
 ├── apps/
-│   ├── web/
+│   ├── web/                  # Next.js web app
 │   │   ├── app/
-│   │   │   ├── page.js           # Landing page
-│   │   │   └── dashboard/        # Protected dashboard
+│   │   │   ├── dashboard/    # Dashboard page
+│   │   │   ├── api/auth/     # Cookie management routes
+│   │   │   ├── layout.js
+│   │   │   └── page.js       # Landing page
 │   │   ├── components/
-│   │   │   ├── landing/          # Hero, Features, HowItWorks, FAQ, etc.
-│   │   │   └── dashboard/        # Navbar, Sidebar, ItemCard, modals
-│   │   ├── hooks/useAuth.jsx      # Auth state
+│   │   │   ├── dashboard/    # Navbar, Sidebar, ItemCard, ImageModal, KebabMenu
+│   │   │   └── landing/      # Hero, Features, HowItWorks, FAQ, CTA, Nav
+│   │   ├── hooks/useAuth.jsx
 │   │   └── lib/
-│   │       ├── auth.js           # Token management + API calls
-│   │       └── sanitize.js       # Input validation utilities
-│   └── extension/src/
-│       ├── background/index.js   # Service worker — saves clips to Convex
-│       ├── content/index.js      # Keypress detection, toast UI, blocked domains
-│       └── popup/                # Extension popup with login + recent clips
-└── convex/
-    ├── schema.ts                 # DB schema (users, sessions, items + embeddings)
-    ├── auth.js                   # Register, login, logout, refresh, getMe
-    ├── items.js                  # Create, read, delete, paginate clips
-    ├── actions.js                # createItemWithEmbedding, backfillEmbeddings
-    ├── embeddings.js             # Gemini embedding generation
-    ├── semanticSearch.js         # Cosine similarity search action
-    ├── http.js                   # HTTP router with rate limiting
+│   │       ├── auth.js       # Token management
+│   │       └── convex.js     # Convex client
+│   └── extension/            # Chrome extension
+│       ├── manifest.json
+│       └── src/
+│           ├── background/   # Service worker
+│           ├── content/      # Content script injected into every page
+│           └── popup/        # Extension popup UI
+└── convex/                   # Convex backend
+    ├── schema.ts             # DB schema
+    ├── auth.js               # Auth mutations + queries
+    ├── items.js              # Clips CRUD
+    ├── actions.js            # Embedding generation on save
+    ├── semanticSearch.js     # Vector search
+    ├── http.js               # HTTP API router
     └── lib/
-        ├── sanitize.js           # Server-side input validation
-        ├── rateLimit.js          # IP + UserID hybrid rate limiting
-        └── cosineSimilarity.js   # Vector similarity utility
+        ├── sanitize.js
+        └── cosineSimilarity.js
 ```
 
 ---
 
-## Auth
+## Features
 
-Custom session-based auth — no third-party library.
+### Chrome extension
 
-- Passwords hashed with PBKDF2 (Web Crypto API, 100k iterations)
-- Access token: 15-minute expiry, auto-refreshed via refresh token
-- Refresh token: 30-day expiry, stored in `chrome.storage.local` (extension) and `localStorage` (web)
-- Sessions stored in Convex DB — can be invalidated server-side
+- **Auto-capture on copy** — intercepts `copy` events and `Ctrl+C`, shows a save/ignore toast (auto-dismisses in 6s)
+- **Screenshot capture** — press `S` twice on any page to capture the visible tab, shows a preview modal (auto-dismisses in 10s)
+- **Domain blocklist** — silently skips capture on 20+ financial/crypto sites (Chase, PayPal, Coinbase, Binance, etc.)
+- **Popup** — shows your last 5 clips, click to copy to clipboard, open dashboard button
+- **Token auto-refresh** — silently renews access token using stored refresh token
+- **Dual-env routing** — automatically talks to the dev Convex deployment when you open `localhost:3000`, and the prod deployment when you open the deployed URL
 
----
+### Web dashboard
 
-## Security
+- **Real-time clip feed** — updates live across tabs/devices via Convex subscriptions, no refresh needed
+- **Semantic search** — debounced 500ms, embeds your query and ranks results by cosine similarity, shows SEMANTIC badge
+- **Type filtering** — filter by All / Text / Link / Image
+- **Image lightbox** — click any screenshot to open full-screen
+- **Full text expand** — long clips show "Show more" → modal with copy button
+- **Delete clips** — kebab menu on every card
+- **Extension status indicator** — navbar dot polls extension every 10s: green (logged in), amber (installed but not logged in), grey (not detected)
 
-- Input validation and sanitization on both frontend and backend
-- XSS protection — dangerous URL schemes (`javascript:`, `data:`) blocked
-- Hybrid rate limiting (IP + UserID) — shared networks like college WiFi won't block other users
-- Blocked domain list — extension disabled on banking/payment/crypto sites
-- Auth errors sanitized before showing to users
-- `externally_connectable` locked to exact domain — no wildcard origins
+### Backend (Convex)
 
----
-
-## Semantic Search
-
-Text and link clips are embedded using Gemini `gemini-embedding-2` on save. When you search, the query is also embedded and ranked by cosine similarity against all stored embeddings — no Qdrant or vector DB needed.
-
-- Searches by meaning, not just exact words
-- 500ms debounce before firing the search request
-- Falls back to substring search if semantic search fails
-- Shows "SEMANTIC" badge in the dashboard when active
-- Run `npx convex run actions:backfillEmbeddings` to embed existing clips
+- **Custom auth** — PBKDF2 password hashing (100k iterations, SHA-256, random salt), no third-party auth provider
+- **Sessions** — 15-minute access tokens + 30-day refresh tokens stored in DB
+- **Vector embeddings** — every saved text/link clip gets an embedding generated automatically
+- **Semantic search** — query is embedded, cosine similarity scored against all user clips, returns top 10
+- **Convex Storage** — screenshots uploaded as blobs, stored with storage IDs (not base64 in DB)
+- **Input sanitization** — all content sanitized before DB insert
 
 ---
 
-## Database Schema
+## Auth flow
 
 ```
-users    — email, passwordHash, name, createdAt
-sessions — userId, accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt, createdAt
-items    — type (text | link | image), content, embedding, url, imageStorageID, userId, createdAt
+Login/Register
+  → Convex returns { accessToken, refreshToken }
+  → accessToken stored in JS memory (module variable, wiped on page refresh)
+  → refreshToken sent to Next.js /api/auth/set-cookie
+  → Next.js sets httpOnly cookie (not accessible by JS, XSS-proof)
+
+Page refresh (accessToken gone)
+  → getValidAccessToken() detects expiry
+  → calls Next.js /api/auth/refresh (server reads httpOnly cookie)
+  → Convex issues new accessToken
+  → back in memory
+
+Logout
+  → memory cleared
+  → Next.js /api/auth/clear-cookie expires the cookie
 ```
+
+The extension stores both tokens in `chrome.storage.local` — isolated to the extension context, not accessible by web pages.
 
 ---
 
-## Getting Started
+## Local development
 
-**Prerequisites:** Node.js 18+, a [Convex](https://convex.dev) account, a [Gemini API key](https://aistudio.google.com/app/apikey)
+### Prerequisites
+
+- Node.js 20+
+- A Convex account ([convex.dev](https://convex.dev))
+
+### 1. Clone and install
 
 ```bash
-# Install dependencies
+git clone https://github.com/uttkarsh124-shiv/FlowClip.git
+cd FlowClip/apps/web
 npm install
-
-# Set Gemini API key
-npx convex env set GEMINI_API_KEY your_key_here
-
-# Start Convex backend
-npx convex dev
-
-# Start web app
-npm run dev:web
 ```
+
+### 2. Set up Convex
+
+```bash
+cd ../../convex
+npx convex dev
+```
+
+This starts the Convex dev server and gives you your deployment URL.
+
+### 3. Environment variables
 
 Create `apps/web/.env.local`:
 
 ```env
-NEXT_PUBLIC_CONVEX_URL=your_convex_url
-NEXT_PUBLIC_CONVEX_SITE_URL=your_convex_site_url
-NEXT_PUBLIC_EXTENSION_ID=your_chrome_extension_id
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+NEXT_PUBLIC_CONVEX_SITE_URL=https://your-deployment.convex.site
+NEXT_PUBLIC_EXTENSION_ID=your-extension-id
 ```
 
-**Load the extension:**
-1. Go to `chrome://extensions`
-2. Enable Developer mode
-3. Load unpacked → select `apps/extension`
+### 4. Run the web app
 
-**Backfill embeddings for existing clips:**
 ```bash
-npx convex run actions:backfillEmbeddings
+cd apps/web
+npm run dev
 ```
+
+### 5. Load the extension
+
+1. Go to `chrome://extensions`
+2. Enable **Developer mode**
+3. Click **Load unpacked** → select `apps/extension`
+4. Note the extension ID and put it in `.env.local`
 
 ---
 
-## Extension Permissions
+## Deployment
 
-| Permission | Why |
+### Next.js → Vercel
+
+1. Connect `uttkarsh124-shiv/FlowClip` to Vercel
+2. Set **Root Directory** to `apps/web`
+3. Add environment variables in Vercel dashboard:
+   - `NEXT_PUBLIC_CONVEX_URL`
+   - `NEXT_PUBLIC_CONVEX_SITE_URL`
+   - `NEXT_PUBLIC_EXTENSION_ID`
+
+### Convex backend
+
+```bash
+cd convex
+npx convex deploy
+```
+
+This deploys to Convex Cloud. The backend URL never changes.
+
+### Chrome extension
+
+Load unpacked via `chrome://extensions`. Publishing to the Chrome Web Store requires a one-time $5 developer registration fee.
+
+---
+
+## Environment map
+
+| Dashboard origin | Convex deployment |
 |---|---|
-| `clipboardRead` | Read copied text on `Ctrl+C` |
-| `storage` | Store auth tokens |
-| `activeTab` | Get current page URL |
-| `tabs` | Capture screenshot, open dashboard |
+| `http://localhost:3000` | Dev (`fantastic-condor-84`) |
+| `https://flow-clip-web.vercel.app` | Prod (`polished-peccary-13`) |
+
+The extension automatically detects which dashboard you're using and routes to the correct Convex deployment.
