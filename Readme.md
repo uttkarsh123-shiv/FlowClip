@@ -2,7 +2,7 @@
 
 A smart clipboard manager that automatically captures what you copy and screenshot across the web, syncs it to a personal dashboard, and lets you search through it semantically.
 
-**Live:** [flow-clip-web.vercel.app](https://flow-clip-web.vercel.app)
+**Live:** [flowclip-web.vercel.app](https://flowclip-web.vercel.app)
 
 ---
 
