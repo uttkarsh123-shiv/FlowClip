@@ -6,7 +6,10 @@
     "build": "next build",
     "dev": "next dev --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "autoprefixer": "^10.5.0",
@@ -20,8 +23,13 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitest/ui": "^4.1.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
-    "tailwindcss": "^4.2.4"
+    "jsdom": "^30.0.1",
+    "tailwindcss": "^4.2.4",
+    "vitest": "^4.1.10"
   }
 }
