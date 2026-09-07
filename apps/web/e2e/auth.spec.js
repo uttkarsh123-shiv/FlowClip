@@ -69,7 +69,7 @@ test.describe("Login modal", () => {
     await openLoginModal(page);
 
     await page.getByRole("button", { name: "Sign up" }).last().click();
-    await expect(page.getByText("Create account")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Create account" })).toBeVisible();
     await expect(page.getByPlaceholder("John Doe")).toBeVisible();
   });
 });
