@@ -27,7 +27,9 @@ export default function Dashboard() {
     router.replace("/");
   };
 
-  if (loading || !user) return null;
+  // Show nothing only when there's no user at all (not just re-validating)
+  // If localStorage has user, render immediately while auth verifies in background
+  if (!user && loading) return null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#fff" }}>

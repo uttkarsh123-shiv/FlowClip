@@ -56,7 +56,8 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         });
 
         if (!res.ok) throw new Error("Search failed");
-        const results = await res.json();
+        const { results, meta } = await res.json();
+        console.log("[SemanticSearch] meta:", meta); // metrics logging
         setSemanticResults(results);
       } catch {
         setSemanticResults(null);
