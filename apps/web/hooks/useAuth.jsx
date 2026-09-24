@@ -27,14 +27,11 @@ function clearCachedUser() {
 }
 
 export function useAuth() {
-  const cachedUser = getCachedUser();
-
-  // Initialise from localStorage immediately — no loading flicker on repeat visits
-  const [user, setUser] = useState(() => cachedUser);
+  const [user, setUser] = useState(null); // start null on server and client both
   const [loading, setLoading] = useState(true);
 
   async function checkAuth() {
-    const pageLoadTime = performance.now(); // time since navigation start
+    const pageLoadTime = performance.now();
 
     try {
       const accessToken = await getValidAccessToken();
@@ -61,17 +58,14 @@ export function useAuth() {
       }
 
       const freshUser = await res.json();
-      setCachedUser(freshUser); // keep cache in sync
+      setCachedUser(freshUser);
       setUser(freshUser);
 
-      // Log auth performance metrics
       console.log("[useAuth] metrics:", {
-        cacheHit: !!cachedUser,
-        authMeLatency:  `${authMeLatency}ms`,   // just the /auth/me call
-        totalAuthTime:  `${totalLatency}ms`,     // full chain: refresh token + /auth/me
-        dashboardBlockedFor: cachedUser
-          ? "0ms (cache hit — rendered immediately)"
-          : `${totalLatency}ms (no cache — waited for network)`,
+        cacheHit: !!getCachedUser(),
+        authMeLatency:  `${authMeLatency}ms`,
+        totalAuthTime:  `${totalLatency}ms`,
+        dashboardBlockedFor: `${totalLatency}ms`,
       });
     } catch {
       setUser(false);
@@ -81,6 +75,15 @@ export function useAuth() {
   }
 
   useEffect(() => {
+    // Read localStorage only on client after mount — avoids SSR/hydration mismatch
+    const cached = getCachedUser();
+    if (cached) {
+      setUser(cached);
+      console.log("[useAuth] metrics:", {
+        cacheHit: true,
+        dashboardBlockedFor: "0ms (cache hit — rendered immediately)",
+      });
+    }
     checkAuth();
   }, []);
 

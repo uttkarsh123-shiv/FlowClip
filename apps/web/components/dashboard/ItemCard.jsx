@@ -25,15 +25,59 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [hoveredUrl, setHoveredUrl] = useState(null);
   const [selectedText, setSelectedText] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [semanticResults, setSemanticResults] = useState(null); // null = not searching
+  const [semanticResults, setSemanticResults] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
+
+  // Pagination state
+  const [cursor, setCursor] = useState(null);
+  const [allItems, setAllItems] = useState([]);
+  const [isDone, setIsDone] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const kebabRefs = useRef({});
-  const items = useQuery(api.items.getItems, user ? { userId: user._id } : "skip");
   const deleteItem = useMutation(api.items.deleteItem);
 
+  // Paginated query — fetches 20 clips at a time
+  const page = useQuery(
+    api.items.getItemsPaginated,
+    user ? { userId: user._id, cursor: cursor ?? undefined, pageSize: 20 } : "skip"
+  );
+
+  // Accumulate pages into allItems
   useEffect(() => {
-    if (items && onCountChange) onCountChange(items.length);
-  }, [items?.length]);
+    if (!page) return;
+    if (cursor === null) {
+      // First page — reset
+      setAllItems(page.page);
+    } else {
+      // Subsequent pages — append
+      setAllItems((prev) => {
+        const existingIds = new Set(prev.map((i) => i._id));
+        const newItems = page.page.filter((i) => !existingIds.has(i._id));
+        return [...prev, ...newItems];
+      });
+    }
+    setIsDone(page.isDone);
+    setLoadingMore(false);
+  }, [page]);
+
+  // Reset pagination when user changes
+  useEffect(() => {
+    setCursor(null);
+    setAllItems([]);
+    setIsDone(false);
+  }, [user?._id]);
+
+  // Update clip count from total loaded
+  useEffect(() => {
+    if (allItems.length && onCountChange) onCountChange(allItems.length);
+  }, [allItems.length]);
+
+  const handleLoadMore = () => {
+    if (!page?.continueCursor || isDone || loadingMore) return;
+    setLoadingMore(true);
+    setCursor(page.continueCursor);
+  };
 
   const runSearch = useCallback(
     debounce(async (query, currentUser) => {
@@ -57,7 +101,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
 
         if (!res.ok) throw new Error("Search failed");
         const { results, meta } = await res.json();
-        console.log("[SemanticSearch] meta:", meta); // metrics logging
+        console.log("[SemanticSearch] meta:", meta);
         setSemanticResults(results);
       } catch {
         setSemanticResults(null);
@@ -78,16 +122,21 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
     return () => runSearch.cancel();
   }, [searchQuery, user]);
 
-  const baseItems = searchQuery.trim() && semanticResults !== null ? semanticResults : items;
+  const baseItems = searchQuery.trim() && semanticResults !== null ? semanticResults : allItems;
 
   const filteredItems = baseItems
     ?.filter((item) => activeType === "all" || item.type === activeType)
     ?.filter((item) => {
-      if (searchQuery.trim() && semanticResults !== null) return true; 
+      if (searchQuery.trim() && semanticResults !== null) return true;
       return !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-  const handleDelete = (id) => { deleteItem({ id }); setOpenMenuId(null); };
+  const handleDelete = (id) => {
+    deleteItem({ id });
+    setOpenMenuId(null);
+    // Optimistically remove from local state
+    setAllItems((prev) => prev.filter((item) => item._id !== id));
+  };
 
   return (
     <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
@@ -108,11 +157,11 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         </div>
       )}
 
-      {!items && (
+      {!page && allItems.length === 0 && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
       )}
 
-      {items?.length === 0 && (
+      {page && allItems.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 80 }}>
           <div style={{ width: 64, height: 64, background: "#f4f4f5", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -127,7 +176,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         </div>
       )}
 
-      {searchQuery.trim() && !searchLoading && filteredItems?.length === 0 && items?.length > 0 && (
+      {searchQuery.trim() && !searchLoading && filteredItems?.length === 0 && allItems.length > 0 && (
         <div style={{ textAlign: "center", marginTop: 60 }}>
           <p style={{ color: "#000", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>No results found</p>
           <p style={{ color: "#999", fontSize: 13 }}>Try different keywords or clear the search</p>
@@ -218,13 +267,43 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
           );
         })}
       </div>
+
+      {/* Load more button */}
+      {!searchQuery.trim() && !isDone && allItems.length > 0 && (
+        <div style={{ textAlign: "center", marginTop: 40, marginBottom: 40 }}>
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            style={{
+              padding: "12px 32px",
+              background: loadingMore ? "#f5f5f5" : "#000",
+              color: loadingMore ? "#999" : "#fff",
+              border: "none",
+              borderRadius: 10,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: loadingMore ? "not-allowed" : "pointer",
+              fontFamily: "inherit",
+              transition: "all 0.2s",
+            }}>
+            {loadingMore ? "Loading..." : "Load more"}
+          </button>
+        </div>
+      )}
+
+      {/* All clips loaded indicator */}
+      {!searchQuery.trim() && isDone && allItems.length > 20 && (
+        <p style={{ textAlign: "center", color: "#ccc", fontSize: 13, marginTop: 40, marginBottom: 40 }}>
+          All {allItems.length} clips loaded
+        </p>
+      )}
+
       <ImageModal imageData={selectedImage} onClose={() => setSelectedImage(null)} />
       {selectedText && (
         <div onClick={() => { setSelectedText(null); setCopied(false); }}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div onClick={(e) => e.stopPropagation()}
             style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 680, maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 40px rgba(0,0,0,0.2)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
-            {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #f0f0f0" }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>Full content</span>
               <div style={{ display: "flex", gap: 8 }}>
@@ -243,7 +322,6 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                 </button>
               </div>
             </div>
-            {/* Content */}
             <pre style={{ margin: 0, padding: "24px", overflowY: "auto", fontSize: 13, lineHeight: 1.7, color: "#000", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "inherit" }}>
               {selectedText}
             </pre>

@@ -54,6 +54,44 @@ export const getItems = query({
   },
 });
 
+// Paginated version — fetches PAGE_SIZE clips at a time
+// Reduces initial DB reads by ~98% for users with 1000+ clips
+export const getItemsPaginated = query({
+  args: {
+    userId: v.id("users"),
+    cursor: v.optional(v.string()), // null = first page
+    pageSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const numItems = args.pageSize ?? 20;
+
+    const result = await ctx.db
+      .query("items")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .paginate({ numItems, cursor: args.cursor ?? null });
+
+    // Resolve image storage URLs for this page only (not all items)
+    const resolvedPage = await Promise.allSettled(
+      result.page.map(async (item) => {
+        if (item.imageStorageID) {
+          const imageUrl = await ctx.storage.getUrl(item.imageStorageID);
+          return { ...item, imageUrl };
+        }
+        return item;
+      })
+    );
+
+    return {
+      page: resolvedPage.map((r, i) =>
+        r.status === "fulfilled" ? r.value : result.page[i]
+      ),
+      continueCursor: result.continueCursor, // pass back to fetch next page
+      isDone: result.isDone,                 // true when no more pages
+    };
+  },
+});
+
 export const deleteItem = mutation({
   args: { id: v.id("items") },
   handler: async (ctx, args) => {
