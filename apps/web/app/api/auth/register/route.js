@@ -78,9 +78,12 @@ export async function POST(request) {
     `;
 
     // 7. Return access token + set refresh token as HTTP-only cookie
+    // Also include refreshToken in response body for extension (can't read cookies)
     const response = NextResponse.json({
       accessToken,
       accessTokenExpiresAt,
+      refreshToken,          // extension stores this in chrome.storage
+      refreshTokenExpiresAt,
     });
     setRefreshTokenCookie(response, refreshToken, refreshTokenExpiresAt);
 
