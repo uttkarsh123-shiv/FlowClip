@@ -1,0 +1,12 @@
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// Generate embedding vector for a given text using Gemini
+export async function getEmbedding(text) {
+  const response = await ai.models.embedContent({
+    model: "gemini-embedding-2",
+    contents: text,
+  });
+  return response.embeddings[0].values; // float64[]
+}
