@@ -1,84 +1,133 @@
 "use client";
-import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import debounce from "lodash/debounce";
-import { api } from "../../../../convex/_generated/api";
 import KebabIcon from "./KebabIcon.jsx";
 import ImageModal from "./ImageModal.jsx";
 import KebabMenu from "./KebabMenu.jsx";
 import { useAuth } from "@/hooks/useAuth";
 import { getValidAccessToken } from "@/lib/auth";
 
-const CONVEX_SITE_URL = process.env.NEXT_PUBLIC_CONVEX_SITE_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 const typeLabel = { text: "Text", link: "Link", image: "Image" };
 const typeBadge = {
-  text:  { bg: "#000",     color: "#fff" },
-  link:  { bg: "#38d091",  color: "#fff" },
-  image: { bg: "#6366f1",  color: "#fff" },
+  text:  { bg: "#000",    color: "#fff" },
+  link:  { bg: "#38d091", color: "#fff" },
+  image: { bg: "#6366f1", color: "#fff" },
 };
 
 export default function ItemCard({ activeType, searchQuery = "", onCountChange }) {
   const { user } = useAuth();
-  const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuId, setOpenMenuId]     = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [hoveredUrl, setHoveredUrl] = useState(null);
+  const [hoveredUrl, setHoveredUrl]     = useState(null);
   const [selectedText, setSelectedText] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied]             = useState(false);
   const [semanticResults, setSemanticResults] = useState(null);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchLoading, setSearchLoading]     = useState(false);
 
   // Pagination state
-  const [cursor, setCursor] = useState(null);
-  const [allItems, setAllItems] = useState([]);
-  const [isDone, setIsDone] = useState(false);
+  const [allItems, setAllItems]   = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore]     = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const kebabRefs = useRef({});
-  const deleteItem = useMutation(api.items.deleteItem);
 
-  // Paginated query — fetches 20 clips at a time
-  const page = useQuery(
-    api.items.getItemsPaginated,
-    user ? { userId: user._id, cursor: cursor ?? undefined, pageSize: 20 } : "skip"
-  );
+  // ─── Fetch clips (paginated) ────────────────────────────────────────────────
+  const fetchClips = useCallback(async (cursor = null, append = false) => {
+    const accessToken = await getValidAccessToken();
+    if (!accessToken) return;
 
-  // Accumulate pages into allItems
-  useEffect(() => {
-    if (!page) return;
-    if (cursor === null) {
-      // First page — reset
-      setAllItems(page.page);
-    } else {
-      // Subsequent pages — append
-      setAllItems((prev) => {
-        const existingIds = new Set(prev.map((i) => i._id));
-        const newItems = page.page.filter((i) => !existingIds.has(i._id));
-        return [...prev, ...newItems];
+    try {
+      const url = cursor
+        ? `${API_URL}/api/clips?cursor=${encodeURIComponent(cursor)}&pageSize=20`
+        : `${API_URL}/api/clips?pageSize=20`;
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
-    }
-    setIsDone(page.isDone);
-    setLoadingMore(false);
-  }, [page]);
 
-  // Reset pagination when user changes
+      if (!res.ok) return;
+
+      const data = await res.json();
+
+      setAllItems((prev) => {
+        if (!append) return data.clips;
+        const existingIds = new Set(prev.map((i) => i.id));
+        const newClips    = data.clips.filter((c) => !existingIds.has(c.id));
+        return [...prev, ...newClips];
+      });
+
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+    } finally {
+      setInitialLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  // Initial load when user is available
   useEffect(() => {
-    setCursor(null);
+    if (!user) return;
+    setInitialLoading(true);
     setAllItems([]);
-    setIsDone(false);
+    setNextCursor(null);
+    fetchClips();
   }, [user?._id]);
 
-  // Update clip count from total loaded
+  // Update clip count
   useEffect(() => {
-    if (allItems.length && onCountChange) onCountChange(allItems.length);
+    if (onCountChange) onCountChange(allItems.length);
   }, [allItems.length]);
 
   const handleLoadMore = () => {
-    if (!page?.continueCursor || isDone || loadingMore) return;
+    if (!nextCursor || !hasMore || loadingMore) return;
     setLoadingMore(true);
-    setCursor(page.continueCursor);
+    fetchClips(nextCursor, true);
   };
 
+  // ─── SSE real-time updates ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!user) return;
+
+    let es = null;
+
+    async function connectSSE() {
+      const accessToken = await getValidAccessToken();
+      if (!accessToken) return;
+
+      // EventSource doesn't support headers — pass token as query param
+      es = new EventSource(`${API_URL}/api/clips/stream?token=${accessToken}`);
+
+      es.addEventListener("new_clip", (e) => {
+        const clip = JSON.parse(e.data);
+        // Prepend new clip to top of list
+        setAllItems((prev) => {
+          if (prev.find((i) => i.id === clip.id)) return prev; // dedupe
+          return [clip, ...prev];
+        });
+      });
+
+      es.addEventListener("connected", (e) => {
+        console.log("[SSE] connected", JSON.parse(e.data));
+      });
+
+      es.onerror = () => {
+        console.warn("[SSE] connection lost, browser will retry");
+      };
+    }
+
+    connectSSE();
+
+    // Cleanup on unmount or user change
+    return () => {
+      if (es) es.close();
+    };
+  }, [user?._id]);
+
+  // ─── Semantic search ────────────────────────────────────────────────────────
   const runSearch = useCallback(
     debounce(async (query, currentUser) => {
       if (!query.trim() || !currentUser) {
@@ -90,10 +139,10 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         const accessToken = await getValidAccessToken();
         if (!accessToken) return;
 
-        const res = await fetch(`${CONVEX_SITE_URL}/clips/search`, {
+        const res = await fetch(`${API_URL}/api/clips/search`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":  "application/json",
             "Authorization": `Bearer ${accessToken}`,
           },
           body: JSON.stringify({ query: query.trim() }),
@@ -122,7 +171,29 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
     return () => runSearch.cancel();
   }, [searchQuery, user]);
 
-  const baseItems = searchQuery.trim() && semanticResults !== null ? semanticResults : allItems;
+  // ─── Delete ─────────────────────────────────────────────────────────────────
+  const handleDelete = async (id) => {
+    setOpenMenuId(null);
+    // Optimistic update
+    setAllItems((prev) => prev.filter((item) => item.id !== id));
+
+    try {
+      const accessToken = await getValidAccessToken();
+      await fetch(`${API_URL}/api/clips/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+    } catch (e) {
+      console.error("[delete clip failed]", e);
+      // Re-fetch to restore if delete failed
+      fetchClips();
+    }
+  };
+
+  // ─── Filtered items ─────────────────────────────────────────────────────────
+  const baseItems = searchQuery.trim() && semanticResults !== null
+    ? semanticResults
+    : allItems;
 
   const filteredItems = baseItems
     ?.filter((item) => activeType === "all" || item.type === activeType)
@@ -131,13 +202,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       return !searchQuery || item.content?.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
-  const handleDelete = (id) => {
-    deleteItem({ id });
-    setOpenMenuId(null);
-    // Optimistically remove from local state
-    setAllItems((prev) => prev.filter((item) => item._id !== id));
-  };
-
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ padding: "48px 56px", background: "#fff", minHeight: "calc(100vh - 80px)", fontFamily: "var(--font-sans), 'Plus Jakarta Sans', sans-serif" }}>
 
@@ -157,11 +222,11 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         </div>
       )}
 
-      {!page && allItems.length === 0 && (
+      {initialLoading && (
         <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
       )}
 
-      {page && allItems.length === 0 && (
+      {!initialLoading && allItems.length === 0 && (
         <div style={{ textAlign: "center", marginTop: 80 }}>
           <div style={{ width: 64, height: 64, background: "#f4f4f5", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -172,7 +237,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
             </svg>
           </div>
           <p style={{ color: "#000", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>No clips saved yet</p>
-          <p style={{ color: "#999", fontSize: 14, fontWeight: 400 }}>Copy text or press S twice to capture a screenshot</p>
+          <p style={{ color: "#999", fontSize: 14 }}>Copy text or press S twice to capture a screenshot</p>
         </div>
       )}
 
@@ -187,16 +252,12 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
         {filteredItems?.map((item) => {
           const badge = typeBadge[item.type] ?? typeBadge.text;
           return (
-            <div key={item._id} style={{
-              breakInside: "avoid",
-              marginBottom: 28,
-              background: "#f9fafb",
-              border: "1px solid #f0f0f0",
-              borderRadius: 16,
-              padding: "28px 28px",
-              transition: "all 0.2s",
+            <div key={item.id} style={{
+              breakInside: "avoid", marginBottom: 28,
+              background: "#f9fafb", border: "1px solid #f0f0f0",
+              borderRadius: 16, padding: "28px 28px", transition: "all 0.2s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#38d091"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(16, 185, 129, 0.08)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#38d091"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(16,185,129,0.08)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#f0f0f0"; e.currentTarget.style.boxShadow = "none"; }}>
 
               {/* Header */}
@@ -206,17 +267,17 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                 </span>
                 <div style={{ position: "relative" }}>
                   <button
-                    ref={(el) => { if (el) kebabRefs.current[item._id] = el; }}
-                    onClick={() => setOpenMenuId(openMenuId === item._id ? null : item._id)}
+                    ref={(el) => { if (el) kebabRefs.current[item.id] = el; }}
+                    onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
                     style={{ background: "none", border: "none", padding: 6, cursor: "pointer", color: "#ccc", transition: "all 0.2s" }}
                     onMouseEnter={(e) => { e.target.style.color = "#999"; }}
                     onMouseLeave={(e) => { e.target.style.color = "#ccc"; }}>
                     <KebabIcon />
                   </button>
-                  {openMenuId === item._id && (
+                  {openMenuId === item.id && (
                     <KebabMenu
-                      anchorRef={{ current: kebabRefs.current[item._id] }}
-                      onDelete={() => handleDelete(item._id)}
+                      anchorRef={{ current: kebabRefs.current[item.id] }}
+                      onDelete={() => handleDelete(item.id)}
                       onClose={() => setOpenMenuId(null)}
                     />
                   )}
@@ -224,8 +285,9 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               </div>
 
               {/* Content */}
-              {item.type === "image" && (item.imageUrl || item.imageData) ? (
-                <img src={item.imageUrl || item.imageData} alt="Screenshot" onClick={() => setSelectedImage(item.imageUrl || item.imageData)}
+              {item.type === "image" && item.image_url ? (
+                <img src={item.image_url} alt="Screenshot"
+                  onClick={() => setSelectedImage(item.image_url)}
                   style={{ width: "100%", borderRadius: 8, maxHeight: 200, objectFit: "cover", cursor: "pointer", display: "block" }} />
               ) : item.type === "link" ? (
                 <a href={item.content} target="_blank" rel="noreferrer"
@@ -240,8 +302,7 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
                     {item.content}
                   </p>
                   {(item.content?.split("\n").length > 6 || item.content?.length > 300) && (
-                    <button
-                      onClick={() => setSelectedText(item.content)}
+                    <button onClick={() => setSelectedText(item.content)}
                       style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#38d091", fontWeight: 600, padding: 0, fontFamily: "inherit" }}>
                       Show more ↗
                     </button>
@@ -252,8 +313,8 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               {/* Source URL */}
               {item.url && item.type !== "link" && (
                 <a href={item.url} target="_blank" rel="noreferrer"
-                  style={{ display: "block", marginTop: 12, fontSize: 11, color: hoveredUrl === item._id ? "#666" : "#bbb", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: "none", transition: "all 0.2s" }}
-                  onMouseEnter={() => setHoveredUrl(item._id)}
+                  style={{ display: "block", marginTop: 12, fontSize: 11, color: hoveredUrl === item.id ? "#666" : "#bbb", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: "none", transition: "all 0.2s" }}
+                  onMouseEnter={() => setHoveredUrl(item.id)}
                   onMouseLeave={() => setHoveredUrl(null)}>
                   {item.url}
                 </a>
@@ -261,38 +322,24 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
 
               {/* Timestamp */}
               <p style={{ marginTop: 16, fontSize: 12, color: "#bbb", borderTop: "1px solid #f0f0f0", paddingTop: 14, margin: "16px 0 0" }}>
-                {new Date(item.createdAt).toLocaleString()}
+                {new Date(item.created_at).toLocaleString()}
               </p>
             </div>
           );
         })}
       </div>
 
-      {/* Load more button */}
-      {!searchQuery.trim() && !isDone && allItems.length > 0 && (
+      {/* Load more */}
+      {!searchQuery.trim() && hasMore && allItems.length > 0 && (
         <div style={{ textAlign: "center", marginTop: 40, marginBottom: 40 }}>
-          <button
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            style={{
-              padding: "12px 32px",
-              background: loadingMore ? "#f5f5f5" : "#000",
-              color: loadingMore ? "#999" : "#fff",
-              border: "none",
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: loadingMore ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-              transition: "all 0.2s",
-            }}>
+          <button onClick={handleLoadMore} disabled={loadingMore}
+            style={{ padding: "12px 32px", background: loadingMore ? "#f5f5f5" : "#000", color: loadingMore ? "#999" : "#fff", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: loadingMore ? "not-allowed" : "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
             {loadingMore ? "Loading..." : "Load more"}
           </button>
         </div>
       )}
 
-      {/* All clips loaded indicator */}
-      {!searchQuery.trim() && isDone && allItems.length > 20 && (
+      {!searchQuery.trim() && !hasMore && allItems.length > 20 && (
         <p style={{ textAlign: "center", color: "#ccc", fontSize: 13, marginTop: 40, marginBottom: 40 }}>
           All {allItems.length} clips loaded
         </p>
@@ -308,18 +355,12 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
               <span style={{ fontSize: 13, fontWeight: 700, color: "#000" }}>Full content</span>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(selectedText);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
+                  onClick={() => { navigator.clipboard.writeText(selectedText); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                   style={{ fontSize: 12, fontWeight: 600, color: copied ? "#fff" : "#38d091", background: copied ? "#38d091" : "none", border: "1px solid #38d091", borderRadius: 6, padding: "5px 12px", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s" }}>
                   {copied ? "Copied ✓" : "Copy"}
                 </button>
                 <button onClick={() => { setSelectedText(null); setCopied(false); }}
-                  style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa", lineHeight: 1, padding: "0 4px" }}>
-                  ×
-                </button>
+                  style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#aaa", lineHeight: 1, padding: "0 4px" }}>×</button>
               </div>
             </div>
             <pre style={{ margin: 0, padding: "24px", overflowY: "auto", fontSize: 13, lineHeight: 1.7, color: "#000", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "inherit" }}>
