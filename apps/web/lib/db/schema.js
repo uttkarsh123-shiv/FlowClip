@@ -6,6 +6,7 @@ import {
   bigint,
   uuid,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 // ─── users ────────────────────────────────────────────────────────────────────
@@ -51,7 +52,8 @@ export const items = pgTable(
     type:      varchar("type", { length: 10 }).notNull(), // text | link | image
     content:   text("content").notNull(),
     url:       text("url"),
-    imageUrl:  text("image_url"),   // external storage URL (Cloudinary etc.)
+    imageUrl:  text("image_url"),   // external storage URL
+    embedding: jsonb("embedding"),  // float64[] from Gemini — stored as JSON array
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
