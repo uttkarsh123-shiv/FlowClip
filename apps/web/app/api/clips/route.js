@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
+import { getEmbedding } from "@/lib/embeddings";
+import { emitNewClip } from "@/lib/event-bus";
 
 // ─── GET /api/clips ───────────────────────────────────────────────────────────
 // Cursor-based pagination — returns 20 clips at a time
@@ -18,7 +20,7 @@ export async function GET(request) {
     const cursor   = searchParams.get("cursor"); // ISO timestamp of last item
 
     // Cursor-based pagination using created_at
-    // Fetches clips older than the cursor — compound index on (user_id, created_at)
+    // Fetches clips older than the cur*+sor — compound index on (user_id, created_at)
     const clips = cursor
       ? await sql`
           SELECT id, type, content, url, image_url, created_at
@@ -87,6 +89,21 @@ export async function POST(request) {
       VALUES (${userId}, ${resolvedType}, ${sanitizedContent}, ${sanitizedUrl}, ${imageUrl ?? null})
       RETURNING id, type, content, url, image_url, created_at
     `;
+
+    // Generate embedding for text/link clips asynchronously
+    // Don't block the response — fire and forget
+    if (resolvedType !== "image") {
+      getEmbedding(sanitizedContent)
+        .then((embedding) => sql`
+          UPDATE items
+          SET embedding = ${JSON.stringify(embedding)}
+          WHERE id = ${clip.id}
+        `)
+        .catch((e) => console.error("[embedding generation failed]", e));
+    }
+
+    // Notify all connected SSE clients for this user
+    emitNewClip(userId, clip);
 
     return NextResponse.json(clip, { status: 201 });
   } catch (e) {
