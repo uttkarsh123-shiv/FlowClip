@@ -1,11 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock fetch globally before importing auth module
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
-
-// Reset module state between tests by re-importing fresh each time
-// We test the exported functions directly
 
 describe("auth token logic", () => {
   beforeEach(() => {
@@ -18,7 +14,7 @@ describe("auth token logic", () => {
     expect(getAccessToken()).toBeNull();
   });
 
-  it("login sets access token and persists refresh token cookie", async () => {
+  it("login sets access token in memory", async () => {
     const mockTokenData = {
       accessToken: "access-abc",
       refreshToken: "refresh-xyz",
@@ -26,16 +22,10 @@ describe("auth token logic", () => {
       refreshTokenExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
     };
 
-    // First fetch: login to Convex site
+    // Single fetch to /api/auth/login — server sets cookie directly
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockTokenData,
-    });
-
-    // Second fetch: set-cookie API route
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ ok: true }),
     });
 
     const { login, getAccessToken } = await import("../lib/auth.js");
@@ -44,9 +34,8 @@ describe("auth token logic", () => {
     expect(result.accessToken).toBe("access-abc");
     expect(getAccessToken()).toBe("access-abc");
 
-    // Verify cookie persistence was called
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(mockFetch.mock.calls[1][0]).toBe("/api/auth/set-cookie");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls[0][0]).toBe("/api/auth/login");
   });
 
   it("login throws on invalid credentials", async () => {
@@ -61,7 +50,7 @@ describe("auth token logic", () => {
     );
   });
 
-  it("logout clears access token and calls clear-cookie", async () => {
+  it("logout clears access token and calls /api/auth/logout", async () => {
     const mockTokenData = {
       accessToken: "access-abc",
       refreshToken: "refresh-xyz",
@@ -69,20 +58,18 @@ describe("auth token logic", () => {
       refreshTokenExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
     };
 
-    // login
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => mockTokenData });
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     const { login, logout, getAccessToken } = await import("../lib/auth.js");
     await login("user@example.com", "password123");
     expect(getAccessToken()).toBe("access-abc");
 
-    // logout: fires logout to Convex + clear-cookie
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
+    // logout fires one request to /api/auth/logout
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     await logout();
     expect(getAccessToken()).toBeNull();
+    expect(mockFetch.mock.calls[1][0]).toBe("/api/auth/logout");
   });
 
   it("refreshAccessToken updates the in-memory token", async () => {
@@ -99,6 +86,7 @@ describe("auth token logic", () => {
     const token = await refreshAccessToken();
     expect(token).toBe("new-access-token");
     expect(getAccessToken()).toBe("new-access-token");
+    expect(mockFetch.mock.calls[0][0]).toBe("/api/auth/refresh");
   });
 
   it("refreshAccessToken throws and clears token on failure", async () => {
@@ -109,14 +97,11 @@ describe("auth token logic", () => {
       refreshTokenExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
     };
 
-    // login first
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => mockTokenData });
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ ok: true }) });
 
     const { login, refreshAccessToken, getAccessToken } = await import("../lib/auth.js");
     await login("user@example.com", "password123");
 
-    // refresh fails
     mockFetch.mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: "Refresh token expired, please login again" }),
@@ -124,5 +109,31 @@ describe("auth token logic", () => {
 
     await expect(refreshAccessToken()).rejects.toThrow("Refresh token expired");
     expect(getAccessToken()).toBeNull();
+  });
+
+  it("getValidAccessToken deduplicates concurrent refresh calls", async () => {
+    const { getValidAccessToken } = await import("../lib/auth.js");
+
+    // Token is expired (default state — expiresAt = 0)
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        accessToken: "refreshed-token",
+        accessTokenExpiresAt: Date.now() + 15 * 60 * 1000,
+      }),
+    });
+
+    // Fire two concurrent calls
+    const [token1, token2] = await Promise.all([
+      getValidAccessToken(),
+      getValidAccessToken(),
+    ]);
+
+    // Both should get the same token
+    expect(token1).toBe("refreshed-token");
+    expect(token2).toBe("refreshed-token");
+
+    // Only ONE fetch should have fired despite two concurrent calls
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
