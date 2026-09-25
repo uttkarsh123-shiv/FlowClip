@@ -43,7 +43,7 @@ export function useAuth() {
       }
 
       const authMeStart = performance.now();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/auth/me`, {
+      const res = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const authMeLatency = Math.round(performance.now() - authMeStart);
