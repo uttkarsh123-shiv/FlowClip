@@ -41,10 +41,14 @@ export async function POST(request) {
     const embeddedCandidates = items.length; // all have embeddings (filtered above)
 
     // 3. Score each item by cosine similarity in JS
+    // postgres.js returns jsonb columns as JSON strings — parse before use
     const scored = items
       .map((item) => ({
         ...item,
-        score: cosineSimilarity(queryEmbedding, item.embedding),
+        score: cosineSimilarity(
+          queryEmbedding,
+          typeof item.embedding === "string" ? JSON.parse(item.embedding) : item.embedding
+        ),
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, topK);
