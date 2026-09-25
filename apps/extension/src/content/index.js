@@ -4,7 +4,10 @@ let lastCaptured = null;
 function sendMsg(payload) {
   if (!chrome?.runtime?.id) return;
   try {
-    chrome.runtime.sendMessage(payload);
+    chrome.runtime.sendMessage(payload, () => {
+      // Suppress "No SW" errors — service worker may be sleeping in MV3
+      void chrome.runtime.lastError;
+    });
   } catch {
   }
 }

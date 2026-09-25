@@ -1,6 +1,6 @@
 const APP_URLS = {
   dev:  "http://localhost:3000",
-  prod: "https://flow-clip-web.vercel.app",
+  prod: "https://flowclip-web.vercel.app",
 };
 
 const ALLOWED_DASHBOARD_ORIGINS = Object.values(APP_URLS);
@@ -14,7 +14,7 @@ function getAppUrl(origin) {
 let APP_URL = APP_URLS.prod;
 
 chrome.storage.local.get(["activeEnv"], (data) => {
-  APP_URL = APP_URLS[data.activeEnv ?? "prod"];
+  APP_URL = APP_URLS[(data?.activeEnv) ?? "prod"];
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -129,7 +129,7 @@ async function saveScreenshot(data) {
   if (!accessToken) return;
 
   try {
-    // 1. Get upload URL from Next.js storage route
+    // 1. Get presigned PUT URL + public image URL from API
     const urlRes = await fetch(`${APP_URL}/api/storage/upload-url`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${accessToken}` },
@@ -137,15 +137,16 @@ async function saveScreenshot(data) {
     if (!urlRes.ok) throw new Error("Failed to get upload URL");
     const { uploadUrl, imageUrl } = await urlRes.json();
 
-    // 2. Upload image blob
+    // 2. Upload JPEG blob directly to Neon Object Storage via presigned URL
     const blob = dataUrlToBlob(data.imageData);
-    await fetch(uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": blob.type },
-      body: blob,
+    const uploadRes = await fetch(uploadUrl, {
+      method:  "PUT",
+      headers: { "Content-Type": "image/jpeg" },
+      body:    blob,
     });
+    if (!uploadRes.ok) throw new Error("Failed to upload screenshot");
 
-    // 3. Save clip with image URL
+    // 3. Save clip with the permanent public imageUrl
     await fetch(`${APP_URL}/api/clips`, {
       method: "POST",
       headers: {
@@ -153,9 +154,9 @@ async function saveScreenshot(data) {
         "Authorization": `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        type: "image",
-        content: "Screenshot captured",
-        url: data.url,
+        type:     "image",
+        content:  "Screenshot captured",
+        url:      data.url,
         imageUrl,
       }),
     });

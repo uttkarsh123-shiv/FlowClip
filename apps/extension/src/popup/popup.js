@@ -1,6 +1,6 @@
 const APP_URLS = {
   dev:  "http://localhost:3000",
-  prod: "https://flow-clip-web.vercel.app",
+  prod: "https://flowclip-web.vercel.app",
 };
 
 const DASHBOARD_URLS = APP_URLS;
@@ -107,6 +107,13 @@ document.getElementById("login-btn").addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+
+    // Guard against HTML error pages (500, 404) before calling .json()
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      throw new Error(`Server error (${res.status}). Check that the app is deployed and env vars are set.`);
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
