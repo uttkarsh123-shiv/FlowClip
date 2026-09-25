@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
  *
  * Prerequisites:
  *   - `npm run dev` is running on http://localhost:3000
- *   - A test account exists in Convex:
+ *   - A test account exists in PostgreSQL:
  *       email:    test@flowclip.dev
  *       password: Test1234!
  *
@@ -51,7 +51,7 @@ test.describe("Login modal", () => {
     await page.getByPlaceholder("••••••••").fill("wrongpassword");
     await page.getByRole("button", { name: "Sign in" }).last().click();
 
-    // Error message should appear — exact text comes from Convex auth
+    // Error message should appear — exact text comes from auth API
     await expect(
       page.locator("p").filter({ hasText: /invalid|incorrect|wrong|not found/i })
     ).toBeVisible({ timeout: 10_000 });

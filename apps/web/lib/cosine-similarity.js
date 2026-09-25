@@ -1,4 +1,10 @@
+// Cosine similarity between two float64 vectors
+// Returns value between -1 and 1 — higher = more similar
 export function cosineSimilarity(a, b) {
+  if (a.length !== b.length) {
+    throw new Error(`Vector dimension mismatch: ${a.length} vs ${b.length}`);
+  }
+
   let dotProduct = 0;
   let magnitudeA = 0;
   let magnitudeB = 0;
