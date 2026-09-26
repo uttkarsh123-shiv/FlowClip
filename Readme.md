@@ -8,7 +8,7 @@ Capture text, links, and screenshots as you browse. Search everything by meaning
 
 <br/>
 
-[![Live App](https://img.shields.io/badge/Live_App-flow--clip--web.vercel.app-black?style=for-the-badge)](https://flow-clip-web.vercel.app)
+[![Live App](https://img.shields.io/badge/Live_App-flowclip--web.vercel.app-black?style=for-the-badge)](https://flowclip-web.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-00e699?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
 
