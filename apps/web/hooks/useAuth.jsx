@@ -27,7 +27,7 @@ function clearCachedUser() {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState(null); // start null on server and client both
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function checkAuth() {
@@ -42,6 +42,20 @@ export function useAuth() {
         return;
       }
 
+      // If we have a cached user AND a valid (non-expired) access token,
+      // skip the /api/auth/me round-trip — the token itself is proof of auth
+      const cached = getCachedUser();
+      if (cached) {
+        setUser(cached);
+        setLoading(false);
+        console.log("[useAuth] metrics:", {
+          cacheHit: true,
+          dashboardBlockedFor: "0ms (token valid + cache hit — skipped /api/auth/me)",
+        });
+        return;
+      }
+
+      // No cached user — need to fetch from DB (first login or cache cleared)
       const authMeStart = performance.now();
       const res = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -62,7 +76,7 @@ export function useAuth() {
       setUser(freshUser);
 
       console.log("[useAuth] metrics:", {
-        cacheHit: !!getCachedUser(),
+        cacheHit: false,
         authMeLatency:  `${authMeLatency}ms`,
         totalAuthTime:  `${totalLatency}ms`,
         dashboardBlockedFor: `${totalLatency}ms`,
