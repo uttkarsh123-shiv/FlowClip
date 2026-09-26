@@ -4,6 +4,7 @@ import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import { getEmbedding } from "@/lib/embeddings";
 import { emitNewClip } from "@/lib/event-bus";
+import { invalidateUserCache } from "@/lib/cache";
 
 // ─── GET /api/clips ───────────────────────────────────────────────────────────
 // Cursor-based pagination — returns 20 clips at a time
@@ -104,6 +105,9 @@ export async function POST(request) {
 
     // Notify all connected SSE clients for this user
     emitNewClip(userId, clip);
+
+    // New clip added — semantic and result caches are now stale for this user
+    invalidateUserCache(userId);
 
     return NextResponse.json(clip, { status: 201 });
   } catch (e) {

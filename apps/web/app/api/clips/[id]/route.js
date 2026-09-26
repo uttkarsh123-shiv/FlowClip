@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
+import { invalidateUserCache } from "@/lib/cache";
 
 // ─── DELETE /api/clips/:id ────────────────────────────────────────────────────
 export async function DELETE(request, { params }) {
@@ -24,6 +25,9 @@ export async function DELETE(request, { params }) {
     if (!deleted) {
       return NextResponse.json({ error: "Clip not found" }, { status: 404 });
     }
+
+    // Clip removed — semantic and result caches are now stale for this user
+    invalidateUserCache(userId);
 
     return NextResponse.json({ ok: true });
   } catch (e) {
