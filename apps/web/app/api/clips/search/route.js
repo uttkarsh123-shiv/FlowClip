@@ -3,11 +3,27 @@ import { sql } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { getEmbedding } from "@/lib/embeddings";
 import { cosineSimilarity } from "@/lib/cosine-similarity";
+import {
+  embeddingCache,
+  semanticCache,
+  resultCache,
+  normalizeQuery,
+  hashQuery,
+} from "@/lib/cache";
 
-const SIMILARITY_THRESHOLD = 0.6;
+const SIMILARITY_THRESHOLD  = 0.6;
+const SEMANTIC_CACHE_THRESHOLD = 0.92; // min similarity to reuse a cached query's results
 
 // ─── POST /api/clips/search ───────────────────────────────────────────────────
-// Semantic search — embed query with Gemini, rank clips by cosine similarity
+// Semantic search with 3-layer cache:
+//
+//   Layer 1 — Embedding cache  (normalizedQuery → embedding)
+//   Layer 2 — Semantic cache   (userId → [{embedding, results}])
+//             if a previously cached query's embedding is ≥0.92 similar to
+//             the current query, return its results directly
+//   Layer 3 — Result cache     (userId:queryHash → results)
+//             exact query match, shortest TTL
+//
 export async function POST(request) {
   const userId = await getUserIdFromRequest(request);
   if (!userId) {
@@ -21,14 +37,62 @@ export async function POST(request) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
     }
 
-    const startTime = Date.now();
+    const startTime   = Date.now();
+    const normalized  = normalizeQuery(query);
+    const queryHash   = hashQuery(normalized);
+    const resultKey   = `${userId}:${queryHash}`;
 
-    // 1. Embed the search query via Gemini
-    const queryEmbedding = await getEmbedding(query.trim());
-    const embeddingLatency = Date.now() - startTime;
+    // ── Layer 3: Result cache (exact query match) ─────────────────────────────
+    const cachedResult = resultCache.get(resultKey);
+    if (cachedResult) {
+      return NextResponse.json({
+        results: cachedResult,
+        meta: {
+          cacheLayer:   3,
+          cacheHit:     true,
+          searchLatency: Date.now() - startTime,
+        },
+      });
+    }
 
-    // 2. Fetch all user's non-image clips that have embeddings
-    // Raw SQL — filtered by user_id index, excludes images and null embeddings
+    // ── Layer 1: Embedding cache ───────────────────────────────────────────────
+    let queryEmbedding = embeddingCache.get(normalized);
+    let embeddingLatency = 0;
+    let embeddingCacheHit = false;
+
+    if (queryEmbedding) {
+      embeddingCacheHit = true;
+    } else {
+      const embStart   = Date.now();
+      queryEmbedding   = await getEmbedding(normalized);
+      embeddingLatency = Date.now() - embStart;
+      // Write-through: cache immediately after generating
+      embeddingCache.set(normalized, queryEmbedding);
+    }
+
+    // ── Layer 2: Semantic cache (similar query match) ─────────────────────────
+    // Check if any previously cached query for this user is semantically
+    // similar enough that its results are still valid
+    const userSemanticEntries = semanticCache.get(userId) ?? [];
+    for (const entry of userSemanticEntries) {
+      const similarity = cosineSimilarity(queryEmbedding, entry.embedding);
+      if (similarity >= SEMANTIC_CACHE_THRESHOLD) {
+        // Close enough — reuse results, cache in Layer 3 for next time
+        resultCache.set(resultKey, entry.results);
+        return NextResponse.json({
+          results: entry.results,
+          meta: {
+            cacheLayer:        2,
+            cacheHit:          true,
+            semanticSimilarity: Math.round(similarity * 1000) / 1000,
+            searchLatency:     Date.now() - startTime,
+          },
+        });
+      }
+    }
+
+    // ── Cache miss — full search ───────────────────────────────────────────────
+    const dbStart = Date.now();
     const items = await sql`
       SELECT id, type, content, url, image_url, embedding, created_at
       FROM items
@@ -36,12 +100,13 @@ export async function POST(request) {
         AND type != 'image'
         AND embedding IS NOT NULL
     `;
+    const dbLatency = Date.now() - dbStart;
 
-    const totalCandidates    = items.length;
-    const embeddedCandidates = items.length; // all have embeddings (filtered above)
+    const totalCandidates = items.length;
 
-    // 3. Score each item by cosine similarity in JS
-    // postgres.js returns jsonb columns as JSON strings — parse before use
+    // Score each clip by cosine similarity
+    // postgres.js returns jsonb as JSON string — parse before use
+    const rankStart = Date.now();
     const scored = items
       .map((item) => ({
         ...item,
@@ -52,54 +117,71 @@ export async function POST(request) {
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, topK);
+    const rankLatency = Date.now() - rankStart;
 
     const searchLatency = Date.now() - startTime;
 
-    // 4. Keyword match — for semantic lift metric
-    const queryTerms    = query.toLowerCase().split(/\s+/).filter(Boolean);
+    // Keyword match — for semantic lift metric
+    const queryTerms     = normalized.split(/\s+/).filter(Boolean);
     const keywordMatches = items.filter((item) =>
       queryTerms.some((term) => item.content?.toLowerCase().includes(term))
     );
 
-    // 5. Semantic-only results — what keyword search would have missed
-    const aboveThreshold     = scored.filter((r) => r.score >= SIMILARITY_THRESHOLD);
+    const aboveThreshold      = scored.filter((r) => r.score >= SIMILARITY_THRESHOLD);
     const semanticOnlyResults = aboveThreshold.filter(
       (r) => !keywordMatches.find((k) => k.id === r.id)
     );
 
-    // 6. Score stats
-    const scores             = scored.map((r) => r.score);
-    const topScore           = scores[0] ?? 0;
-    const avgScore           = scores.length > 0
+    const scores    = scored.map((r) => r.score);
+    const topScore  = scores[0] ?? 0;
+    const avgScore  = scores.length > 0
       ? scores.reduce((sum, s) => sum + s, 0) / scores.length
       : 0;
-    const aboveThresholdCount = aboveThreshold.length;
-    const semanticLiftPct    = aboveThresholdCount > 0
-      ? Math.round((semanticOnlyResults.length / aboveThresholdCount) * 100)
-      : 0;
 
-    // Strip embedding from results — no need to send 3072 floats to client
+    // Strip embeddings from results before caching + returning
     const results = scored.map(({ embedding, ...item }) => item);
+
+    // ── Populate caches ────────────────────────────────────────────────────────
+    // Layer 3: exact result
+    resultCache.set(resultKey, results);
+
+    // Layer 2: store embedding + results so future similar queries can reuse
+    const updatedEntries = [
+      { embedding: queryEmbedding, results },
+      // Keep last 20 entries per user — prevents unbounded growth
+      ...userSemanticEntries.slice(0, 19),
+    ];
+    semanticCache.set(userId, updatedEntries);
 
     return NextResponse.json({
       results,
       meta: {
+        cacheHit:           false,
+        cacheLayer:         0,
+        embeddingCacheHit,
+        embeddingLatency,
+        dbLatency,
+        rankLatency,
+        searchLatency,
         totalCandidates,
-        embeddedCandidates,
-        embeddingCoverage: totalCandidates > 0
-          ? Math.round((embeddedCandidates / totalCandidates) * 100)
-          : 0,
+        embeddedCandidates: totalCandidates,
+        embeddingCoverage:  100,
         topScore:           Math.round(topScore * 1000) / 1000,
         avgScore:           Math.round(avgScore * 1000) / 1000,
-        aboveThresholdCount,
+        aboveThresholdCount: aboveThreshold.length,
         similarityThreshold: SIMILARITY_THRESHOLD,
-        zeroResults:        aboveThresholdCount === 0,
+        zeroResults:        aboveThreshold.length === 0,
         keywordMatchCount:  keywordMatches.length,
         semanticOnlyCount:  semanticOnlyResults.length,
-        semanticLiftPct,
-        embeddingLatency,
-        searchLatency,
+        semanticLiftPct:    aboveThreshold.length > 0
+          ? Math.round((semanticOnlyResults.length / aboveThreshold.length) * 100)
+          : 0,
         queryWordCount:     queryTerms.length,
+        cacheStats: {
+          embedding: embeddingCache.stats(),
+          semantic:  semanticCache.stats(),
+          result:    resultCache.stats(),
+        },
       },
     });
   } catch (e) {
