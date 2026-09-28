@@ -1,6 +1,6 @@
 const APP_URLS = {
   dev:  "http://localhost:3000",
-  prod: "https://flowclip-web.vercel.app",
+  prod: "https://flowclip.duckdns.org",
 };
 
 const ALLOWED_DASHBOARD_ORIGINS = Object.values(APP_URLS);
