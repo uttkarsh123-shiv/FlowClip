@@ -8,9 +8,10 @@ Capture text, links, and screenshots as you browse. Search everything by meaning
 
 <br/>
 
-[![Live App](https://img.shields.io/badge/Live_App-flowclip--web.vercel.app-black?style=for-the-badge)](https://flowclip-web.vercel.app)
+[![Live App](https://img.shields.io/badge/Live_App-flowclip.duckdns.org-black?style=for-the-badge)](https://flowclip.duckdns.org)
 [![Next.js](https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-00e699?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://hub.docker.com/r/utkarsh904/flowclip-web)
 
 </div>
 
@@ -87,7 +88,7 @@ A few things worth noting:
 
 - `EventSource` doesn't support custom headers, so the access token is passed as a query param — validated against the DB before the stream opens
 - A 30-second keep-alive ping prevents proxies and load balancers from closing idle connections
-- `X-Accel-Buffering: no` disables Nginx buffering so events are delivered immediately on EC2
+- `X-Accel-Buffering: no` disables Nginx buffering so events are delivered immediately
 - Client disconnect is detected via `request.signal` (AbortSignal) — the event listener and interval are cleaned up properly
 
 </details>
@@ -140,7 +141,42 @@ Runs as a background service worker. Listens for text selection, copy events, an
 | Semantic search | Google Gemini `text-embedding-004` + cosine similarity |
 | Real-time | Server-Sent Events |
 | Extension | Chrome Manifest V3 |
+| Deployment | Docker + Nginx + Let's Encrypt on AWS EC2 (t2.micro) |
 | Testing | Vitest + Testing Library, Playwright |
+
+---
+
+## Deployment
+
+The app runs in a Docker container on AWS EC2 behind Nginx with a Let's Encrypt SSL certificate.
+
+```
+Browser → https://flowclip.duckdns.org → Nginx (port 443) → Docker container (port 3000)
+```
+
+**To deploy a new version:**
+
+```bash
+# 1. Build and push the image locally
+docker build \
+  --build-arg NEXT_PUBLIC_EXTENSION_ID=your-extension-id \
+  -t utkarsh904/flowclip-web:latest \
+  ./apps/web
+
+docker push utkarsh904/flowclip-web:latest
+
+# 2. SSH into EC2 and restart the container
+docker pull utkarsh904/flowclip-web:latest
+docker stop flowclip-web && docker rm flowclip-web
+docker run -d \
+  --name flowclip-web \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  --env-file .env.docker \
+  utkarsh904/flowclip-web:latest
+```
+
+**Environment variables** — copy `.env.docker.example` to `.env.docker` on the EC2 instance and fill in real values. Never commit `.env.docker`.
 
 ---
 
