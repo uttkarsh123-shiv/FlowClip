@@ -1,0 +1,46 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules
+.npm
+
+# ── Next.js build output ──────────────────────────────────────────────────────
+# Excluded so the builder stage starts clean; it will produce its own .next/
+.next
+out
+
+# ── Environment files ─────────────────────────────────────────────────────────
+# Never bake secrets into the image — inject them at runtime via docker-compose
+# env_file or -e flags
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ── Tests & tooling ───────────────────────────────────────────────────────────
+tests
+e2e
+benchmarks
+test-results
+coverage
+playwright-report
+vitest.config.js
+playwright.config.js
+
+# ── Dev / editor artefacts ────────────────────────────────────────────────────
+.vscode
+.idea
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# ── Drizzle CLI (not needed at runtime) ───────────────────────────────────────
+drizzle.config.js
+lib/db/migrations
+
+# ── Docs ──────────────────────────────────────────────────────────────────────
+*.md
+!README.md
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git
+.gitignore

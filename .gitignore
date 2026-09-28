@@ -19,6 +19,7 @@ apps/extension/dist/
 .env
 .env.local
 .env.*.local
+.env.docker          # Docker runtime secrets — use .env.docker.example as template
 
 # Logs
 *.log
