@@ -6,6 +6,7 @@ import ImageModal from "./ImageModal.jsx";
 import KebabMenu from "./KebabMenu.jsx";
 import { useAuth } from "@/hooks/useAuth";
 import { getValidAccessToken } from "@/lib/auth";
+import { getCachedClips, setCachedClips, clearClipsCache } from "@/lib/clips-cache";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -31,12 +32,15 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore]     = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+  // No spinner if in-memory cache already has data for this user
+  const [initialLoading, setInitialLoading] = useState(() => {
+    return true; // will be set false immediately if cache hits
+  });
 
   const kebabRefs = useRef({});
 
   // ─── Fetch clips (paginated) ────────────────────────────────────────────────
-  const fetchClips = useCallback(async (cursor = null, append = false) => {
+  const fetchClips = useCallback(async (cursor = null, append = false, userId = null) => {
     const accessToken = await getValidAccessToken();
     if (!accessToken) return;
 
@@ -54,10 +58,16 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       const data = await res.json();
 
       setAllItems((prev) => {
-        if (!append) return data.clips;
-        const existingIds = new Set(prev.map((i) => i.id));
-        const newClips    = data.clips.filter((c) => !existingIds.has(c.id));
-        return [...prev, ...newClips];
+        const next = append
+          ? [...prev, ...data.clips.filter((c) => !prev.find((p) => p.id === c.id))]
+          : data.clips;
+
+        // Update in-memory cache on first page load only
+        if (!cursor && !append && userId) {
+          setCachedClips(userId, next, data.nextCursor, data.hasMore);
+        }
+
+        return next;
       });
 
       setNextCursor(data.nextCursor);
@@ -68,13 +78,26 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
     }
   }, []);
 
-  // Initial load when user is available
+  // Initial load — paint from in-memory cache instantly, revalidate in background
   useEffect(() => {
-    if (!user) return;
-    setInitialLoading(true);
-    setAllItems([]);
-    setNextCursor(null);
-    fetchClips();
+    if (!user?._id) return;
+
+    const cached = getCachedClips(user._id);
+    if (cached) {
+      // Cache hit — render immediately, no spinner, revalidate silently
+      setAllItems(cached.clips);
+      setNextCursor(cached.nextCursor);
+      setHasMore(cached.hasMore);
+      setInitialLoading(false);
+      // Background revalidation — updates cache + state when fresh data arrives
+      fetchClips(null, false, user._id);
+    } else {
+      // No cache — show spinner and fetch
+      setInitialLoading(true);
+      setAllItems([]);
+      setNextCursor(null);
+      fetchClips(null, false, user._id);
+    }
   }, [user?._id]);
 
   // Update clip count
@@ -174,8 +197,12 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
   // ─── Delete ─────────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     setOpenMenuId(null);
-    // Optimistic update
-    setAllItems((prev) => prev.filter((item) => item.id !== id));
+    // Optimistic update — remove from state and cache immediately
+    setAllItems((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      if (user?._id) setCachedClips(user._id, next, nextCursor, hasMore);
+      return next;
+    });
 
     try {
       const accessToken = await getValidAccessToken();
@@ -185,8 +212,9 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       });
     } catch (e) {
       console.error("[delete clip failed]", e);
-      // Re-fetch to restore if delete failed
-      fetchClips();
+      // Bust cache and re-fetch to restore correct state
+      clearClipsCache(user?._id);
+      fetchClips(null, false, user?._id);
     }
   };
 

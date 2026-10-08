@@ -68,6 +68,41 @@ export async function logout() {
   }
 
   clearAccessToken();
+
+  // Clear in-memory clips cache (no localStorage — clips are sensitive user data)
+  try {
+    const { clearAllClipsCache } = await import("@/lib/clips-cache");
+    clearAllClipsCache();
+  } catch {}
+
+  // Clear user profile from localStorage
+  try { localStorage.removeItem("flowclip_user"); } catch {}
+}
+
+// ─── Forgot password ─────────────────────────────────────────────────────────
+export async function forgotPassword(email) {
+  const res = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data;
+}
+
+// ─── Reset password ───────────────────────────────────────────────────────────
+export async function resetPassword(token, newPassword) {
+  const res = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, newPassword }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data;
 }
 
 // ─── Refresh ──────────────────────────────────────────────────────────────────
