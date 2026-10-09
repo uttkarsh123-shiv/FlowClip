@@ -23,21 +23,6 @@ function isAccessTokenExpired() {
   return Date.now() > _accessTokenExpiresAt - 30000; // 30s buffer
 }
 
-// ─── Register ─────────────────────────────────────────────────────────────────
-export async function register(email, password, name) {
-  const res = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, name }),
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error);
-
-  setAccessToken(data.accessToken, data.accessTokenExpiresAt);
-  return data;
-}
-
 // ─── Login ────────────────────────────────────────────────────────────────────
 export async function login(email, password) {
   const res = await fetch("/api/auth/login", {
@@ -50,6 +35,33 @@ export async function login(email, password) {
   if (!res.ok) throw new Error(data.error);
 
   setAccessToken(data.accessToken, data.accessTokenExpiresAt);
+
+  // Cache user profile from login response — eliminates /api/auth/me round-trip on dashboard
+  if (data.user) {
+    try { localStorage.setItem("flowclip_user", JSON.stringify(data.user)); } catch {}
+  }
+
+  return data;
+}
+
+// ─── Register ─────────────────────────────────────────────────────────────────
+export async function register(email, password, name) {
+  const res = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, name }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+
+  setAccessToken(data.accessToken, data.accessTokenExpiresAt);
+
+  // Cache user profile from register response — eliminates /api/auth/me round-trip on dashboard
+  if (data.user) {
+    try { localStorage.setItem("flowclip_user", JSON.stringify(data.user)); } catch {}
+  }
+
   return data;
 }
 

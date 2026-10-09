@@ -84,11 +84,13 @@ export async function POST(request) {
 
     // Return access token + set refresh token as HTTP-only cookie
     // Also include refreshToken in response body for extension (can't read cookies)
+    // Include user profile so the client can cache it without a separate /me call
     const response = NextResponse.json({
       accessToken,
       accessTokenExpiresAt,
-      refreshToken,          // extension stores this in chrome.storage
+      refreshToken,
       refreshTokenExpiresAt,
+      user: { _id: user.id, email: user.email, name: user.name },
     });
     setRefreshTokenCookie(response, refreshToken, refreshTokenExpiresAt);
 

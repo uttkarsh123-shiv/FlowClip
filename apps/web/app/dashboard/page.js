@@ -17,7 +17,7 @@ export default function Dashboard() {
   const [clipCount, setClipCount] = useState(0);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && user === false) {
       router.replace("/");
     }
   }, [user, loading, router]);
@@ -27,9 +27,9 @@ export default function Dashboard() {
     router.replace("/");
   };
 
-  // Show nothing only when there's no user at all (not just re-validating)
-  // If localStorage has user, render immediately while auth verifies in background
-  if (!user && loading) return null;
+  // Show nothing only when we know for sure there's no user (not logged in)
+  // During initial load — render the shell optimistically, redirect if auth fails
+  if (user === false) return null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: "#fff" }}>
