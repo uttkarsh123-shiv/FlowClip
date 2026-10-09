@@ -1,5 +1,5 @@
 // Shared auth utilities for Next.js API routes
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
 const SALT_ROUNDS = 10; // cost factor — 10 is OWASP minimum, ~350ms vs ~1.4s at 12
 

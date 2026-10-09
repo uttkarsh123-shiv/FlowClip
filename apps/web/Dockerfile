@@ -9,6 +9,8 @@ COPY package.json package-lock.json ./
 # Recreate the lockfile for linux/x64 — the committed lockfile was generated on
 # Windows and contains win32 platform-specific binaries that npm ci rejects on Linux.
 RUN npm install --ignore-scripts
+# Build bcrypt native bindings (required for C++ performance)
+RUN npm rebuild bcrypt --build-from-source
 
 # ─── Stage 2: builder ─────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
