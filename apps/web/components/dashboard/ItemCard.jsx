@@ -251,7 +251,33 @@ export default function ItemCard({ activeType, searchQuery = "", onCountChange }
       )}
 
       {initialLoading && (
-        <p style={{ color: "#999", fontSize: 14, marginTop: 60, textAlign: "center" }}>Loading...</p>
+        <div style={{ columns: "3 340px", columnGap: 28 }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} style={{
+              breakInside: "avoid", marginBottom: 28,
+              background: "#f9fafb", border: "1px solid #f0f0f0",
+              borderRadius: 16, padding: "28px 28px",
+            }}>
+              {/* Badge skeleton */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                <div style={{ width: 48, height: 22, borderRadius: 5, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite" }} />
+                <div style={{ width: 20, height: 20, borderRadius: 4, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite" }} />
+              </div>
+              {/* Content lines skeleton */}
+              <div style={{ width: "100%", height: 13, borderRadius: 4, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite", marginBottom: 8 }} />
+              <div style={{ width: "90%", height: 13, borderRadius: 4, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite", marginBottom: 8 }} />
+              <div style={{ width: "70%", height: 13, borderRadius: 4, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite", marginBottom: 8 }} />
+              {/* Timestamp skeleton */}
+              <div style={{ width: "50%", height: 11, borderRadius: 4, background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite", marginTop: 22 }} />
+            </div>
+          ))}
+          <style>{`
+            @keyframes shimmer {
+              0% { background-position: 200% 0; }
+              100% { background-position: -200% 0; }
+            }
+          `}</style>
+        </div>
       )}
 
       {!initialLoading && allItems.length === 0 && (
