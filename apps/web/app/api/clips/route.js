@@ -18,10 +18,8 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20"), 50);
-    const cursor   = searchParams.get("cursor"); // ISO timestamp of last item
+    const cursor   = searchParams.get("cursor");
 
-    // Cursor-based pagination using created_at
-    // Fetches clips older than the cur*+sor — compound index on (user_id, created_at)
     const clips = cursor
       ? await sql`
           SELECT id, type, content, url, image_url, created_at
@@ -39,16 +37,13 @@ export async function GET(request) {
           LIMIT ${pageSize + 1}
         `;
 
-    // Fetch one extra to determine if there's a next page
-    const hasMore     = clips.length > pageSize;
-    const page        = hasMore ? clips.slice(0, pageSize) : clips;
-    const nextCursor  = hasMore ? page[page.length - 1].created_at.toISOString() : null;
+    const hasMore    = clips.length > pageSize;
+    const page       = hasMore ? clips.slice(0, pageSize) : clips;
+    const nextCursor = hasMore ? page[page.length - 1].created_at.toISOString() : null;
 
-    return NextResponse.json({
-      clips: page,
-      nextCursor,   // pass this back as ?cursor= for next page
-      hasMore,
-    });
+    const res = NextResponse.json({ clips: page, nextCursor, hasMore });
+    if (request._authTiming) res.headers.set("Server-Timing", request._authTiming);
+    return res;
   } catch (e) {
     console.error("[GET /api/clips]", e);
     return NextResponse.json({ error: "Failed to fetch clips" }, { status: 500 });
