@@ -1,7 +1,7 @@
 // Shared auth utilities for Next.js API routes
 import bcrypt from "bcryptjs";
 
-const SALT_ROUNDS = 12; // cost factor — higher = slower = harder to brute force
+const SALT_ROUNDS = 10; // cost factor — 10 is OWASP minimum, ~350ms vs ~1.4s at 12
 
 // ─── Token TTLs ───────────────────────────────────────────────────────────────
 export const ACCESS_TOKEN_TTL  = 15 * 60 * 1000;           // 15 minutes
