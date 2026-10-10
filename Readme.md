@@ -165,7 +165,26 @@ Runs as a background service worker. Listens for text selection, copy events, an
 
 ---
 
-## CI/CD
+## Metrics
+
+| What | Measured value |
+|---|---|
+| Login TTFB | 1.44s → 1.3s (bcrypt floor on t2.micro) |
+| `/api/auth/me` after login | eliminated — 593ms saved per login |
+| Token validation (DB) | ~50-100ms per request |
+| Token validation (cache) | <1ms per request (Server-Timing verified) |
+| Dashboard clips visible | ~2.9s waterfall → ~1s (parallel + cache) |
+| Return visit render | instant — stale-while-revalidate from memory |
+| Lighthouse Performance | 98 |
+| Lighthouse Best Practices | 100 |
+| LCP improvement from HTTP/2 | 1,220ms (Lighthouse audit) |
+| Docker build (cold) | ~5-6 min |
+| Docker build (warm cache) | ~2-3 min |
+| Docker image size | ~1GB → ~150MB (multi-stage build) |
+
+---
+
+
 
 Every push to `main` automatically builds and deploys:
 

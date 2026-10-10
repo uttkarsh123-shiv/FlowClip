@@ -60,54 +60,73 @@ export async function POST(request) {
     let embeddingLatency = 0;
     let embeddingCacheHit = false;
 
+    const dbStart = Date.now();
+
     if (queryEmbedding) {
+      // Embedding cache hit — only need DB fetch
       embeddingCacheHit = true;
+
+      const items = await sql`
+        SELECT id, type, content, url, image_url, embedding, created_at
+        FROM items
+        WHERE user_id = ${userId}
+          AND type != 'image'
+          AND embedding IS NOT NULL
+      `;
+      var dbLatency = Date.now() - dbStart;
+      var allItems = items;
     } else {
-      const embStart   = Date.now();
-      queryEmbedding   = await getEmbedding(normalized);
+      // Embedding cache miss — fire Gemini + DB fetch in parallel
+      // Neither depends on the other, so no reason to run them sequentially
+      const embStart = Date.now();
+      const [embeddingResult, itemsResult] = await Promise.allSettled([
+        getEmbedding(normalized),
+        sql`
+          SELECT id, type, content, url, image_url, embedding, created_at
+          FROM items
+          WHERE user_id = ${userId}
+            AND type != 'image'
+            AND embedding IS NOT NULL
+        `,
+      ]);
+
       embeddingLatency = Date.now() - embStart;
-      // Write-through: cache immediately after generating
+      var dbLatency = Date.now() - dbStart;
+
+      if (embeddingResult.status === "rejected") {
+        console.error("[search] embedding failed:", embeddingResult.reason);
+        return NextResponse.json({ error: "Search failed" }, { status: 500 });
+      }
+
+      queryEmbedding = embeddingResult.value;
       embeddingCache.set(normalized, queryEmbedding);
+
+      var allItems = itemsResult.status === "fulfilled" ? itemsResult.value : [];
     }
 
     // ── Layer 2: Semantic cache (similar query match) ─────────────────────────
-    // Check if any previously cached query for this user is semantically
-    // similar enough that its results are still valid
     const userSemanticEntries = semanticCache.get(userId) ?? [];
     for (const entry of userSemanticEntries) {
       const similarity = cosineSimilarity(queryEmbedding, entry.embedding);
       if (similarity >= SEMANTIC_CACHE_THRESHOLD) {
-        // Close enough — reuse results, cache in Layer 3 for next time
         resultCache.set(resultKey, entry.results);
         return NextResponse.json({
           results: entry.results,
           meta: {
-            cacheLayer:        2,
-            cacheHit:          true,
+            cacheLayer:         2,
+            cacheHit:           true,
             semanticSimilarity: Math.round(similarity * 1000) / 1000,
-            searchLatency:     Date.now() - startTime,
+            searchLatency:      Date.now() - startTime,
           },
         });
       }
     }
 
-    // ── Cache miss — full search ───────────────────────────────────────────────
-    const dbStart = Date.now();
-    const items = await sql`
-      SELECT id, type, content, url, image_url, embedding, created_at
-      FROM items
-      WHERE user_id = ${userId}
-        AND type != 'image'
-        AND embedding IS NOT NULL
-    `;
-    const dbLatency = Date.now() - dbStart;
-
-    const totalCandidates = items.length;
+    const totalCandidates = allItems.length;
 
     // Score each clip by cosine similarity
-    // postgres.js returns jsonb as JSON string — parse before use
     const rankStart = Date.now();
-    const scored = items
+    const scored = allItems
       .map((item) => ({
         ...item,
         score: cosineSimilarity(
@@ -123,7 +142,7 @@ export async function POST(request) {
 
     // Keyword match — for semantic lift metric
     const queryTerms     = normalized.split(/\s+/).filter(Boolean);
-    const keywordMatches = items.filter((item) =>
+    const keywordMatches = allItems.filter((item) =>
       queryTerms.some((term) => item.content?.toLowerCase().includes(term))
     );
 
