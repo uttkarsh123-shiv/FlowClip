@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { generateToken, ACCESS_TOKEN_TTL } from "@/lib/auth-helpers";
 
 // ─── POST /api/auth/refresh-with-token ───────────────────────────────────────
@@ -16,20 +16,26 @@ export async function POST(request) {
     }
 
     // Find session by refresh token
-    const [session] = await sql`
-      SELECT id, user_id, access_token, access_token_expires_at, refresh_token_expires_at
-      FROM sessions
-      WHERE refresh_token = ${refreshToken}
-      LIMIT 1
-    `;
+    const session = await prisma.session.findUnique({
+      where: { refreshToken },
+      select: {
+        id: true,
+        accessToken: true,
+        accessTokenExpiresAt: true,
+        refreshTokenExpiresAt: true,
+      },
+    });
 
     if (!session) {
       return NextResponse.json({ error: "Invalid refresh token" }, { status: 401 });
     }
 
+    const accessTokenExpiresAt  = Number(session.accessTokenExpiresAt);
+    const refreshTokenExpiresAt = Number(session.refreshTokenExpiresAt);
+
     // Check refresh token expiry
-    if (Date.now() > session.refresh_token_expires_at) {
-      await sql`DELETE FROM sessions WHERE id = ${session.id}`;
+    if (Date.now() > refreshTokenExpiresAt) {
+      await prisma.session.delete({ where: { id: session.id } });
       return NextResponse.json(
         { error: "Refresh token expired, please login again" },
         { status: 401 }
@@ -37,10 +43,10 @@ export async function POST(request) {
     }
 
     // Return existing access token if still valid
-    if (Date.now() < session.access_token_expires_at - 30000) {
+    if (Date.now() < accessTokenExpiresAt - 30000) {
       return NextResponse.json({
-        accessToken:         session.access_token,
-        accessTokenExpiresAt: session.access_token_expires_at,
+        accessToken:          session.accessToken,
+        accessTokenExpiresAt,
       });
     }
 
@@ -48,15 +54,16 @@ export async function POST(request) {
     const newAccessToken = generateToken();
     const newExpiresAt   = Date.now() + ACCESS_TOKEN_TTL;
 
-    await sql`
-      UPDATE sessions
-      SET access_token = ${newAccessToken},
-          access_token_expires_at = ${newExpiresAt}
-      WHERE id = ${session.id}
-    `;
+    await prisma.session.update({
+      where: { id: session.id },
+      data: {
+        accessToken:          newAccessToken,
+        accessTokenExpiresAt: BigInt(newExpiresAt),
+      },
+    });
 
     return NextResponse.json({
-      accessToken:         newAccessToken,
+      accessToken:          newAccessToken,
       accessTokenExpiresAt: newExpiresAt,
     });
   } catch (e) {

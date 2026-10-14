@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { getEmbedding } from "@/lib/embeddings";
 import { cosineSimilarity } from "@/lib/cosine-similarity";
@@ -11,7 +11,7 @@ import {
   hashQuery,
 } from "@/lib/cache";
 
-const SIMILARITY_THRESHOLD  = 0.6;
+const SIMILARITY_THRESHOLD     = 0.6;
 const SEMANTIC_CACHE_THRESHOLD = 0.92; // min similarity to reuse a cached query's results
 
 // ─── POST /api/clips/search ───────────────────────────────────────────────────
@@ -48,16 +48,16 @@ export async function POST(request) {
       return NextResponse.json({
         results: cachedResult,
         meta: {
-          cacheLayer:   3,
-          cacheHit:     true,
+          cacheLayer:    3,
+          cacheHit:      true,
           searchLatency: Date.now() - startTime,
         },
       });
     }
 
     // ── Layer 1: Embedding cache ───────────────────────────────────────────────
-    let queryEmbedding = embeddingCache.get(normalized);
-    let embeddingLatency = 0;
+    let queryEmbedding    = embeddingCache.get(normalized);
+    let embeddingLatency  = 0;
     let embeddingCacheHit = false;
 
     const dbStart = Date.now();
@@ -66,32 +66,33 @@ export async function POST(request) {
       // Embedding cache hit — only need DB fetch
       embeddingCacheHit = true;
 
-      const items = await sql`
-        SELECT id, type, content, url, image_url, embedding, created_at
-        FROM items
-        WHERE user_id = ${userId}
-          AND type != 'image'
-          AND embedding IS NOT NULL
-      `;
+      var allItems = await prisma.item.findMany({
+        where: {
+          userId,
+          type:      { not: "image" },
+          embedding: { not: null },
+        },
+        select: { id: true, type: true, content: true, url: true, imageUrl: true, embedding: true, createdAt: true },
+      });
+
       var dbLatency = Date.now() - dbStart;
-      var allItems = items;
     } else {
       // Embedding cache miss — fire Gemini + DB fetch in parallel
-      // Neither depends on the other, so no reason to run them sequentially
       const embStart = Date.now();
       const [embeddingResult, itemsResult] = await Promise.allSettled([
         getEmbedding(normalized),
-        sql`
-          SELECT id, type, content, url, image_url, embedding, created_at
-          FROM items
-          WHERE user_id = ${userId}
-            AND type != 'image'
-            AND embedding IS NOT NULL
-        `,
+        prisma.item.findMany({
+          where: {
+            userId,
+            type:      { not: "image" },
+            embedding: { not: null },
+          },
+          select: { id: true, type: true, content: true, url: true, imageUrl: true, embedding: true, createdAt: true },
+        }),
       ]);
 
       embeddingLatency = Date.now() - embStart;
-      var dbLatency = Date.now() - dbStart;
+      var dbLatency    = Date.now() - dbStart;
 
       if (embeddingResult.status === "rejected") {
         console.error("[search] embedding failed:", embeddingResult.reason);
@@ -125,13 +126,14 @@ export async function POST(request) {
     const totalCandidates = allItems.length;
 
     // Score each clip by cosine similarity
+    // Prisma returns Json fields as parsed JS values (arrays), so no JSON.parse needed
     const rankStart = Date.now();
     const scored = allItems
       .map((item) => ({
         ...item,
         score: cosineSimilarity(
           queryEmbedding,
-          typeof item.embedding === "string" ? JSON.parse(item.embedding) : item.embedding
+          Array.isArray(item.embedding) ? item.embedding : JSON.parse(item.embedding)
         ),
       }))
       .sort((a, b) => b.score - a.score)
@@ -151,9 +153,9 @@ export async function POST(request) {
       (r) => !keywordMatches.find((k) => k.id === r.id)
     );
 
-    const scores    = scored.map((r) => r.score);
-    const topScore  = scores[0] ?? 0;
-    const avgScore  = scores.length > 0
+    const scores   = scored.map((r) => r.score);
+    const topScore = scores[0] ?? 0;
+    const avgScore = scores.length > 0
       ? scores.reduce((sum, s) => sum + s, 0) / scores.length
       : 0;
 
@@ -161,13 +163,10 @@ export async function POST(request) {
     const results = scored.map(({ embedding, ...item }) => item);
 
     // ── Populate caches ────────────────────────────────────────────────────────
-    // Layer 3: exact result
     resultCache.set(resultKey, results);
 
-    // Layer 2: store embedding + results so future similar queries can reuse
     const updatedEntries = [
       { embedding: queryEmbedding, results },
-      // Keep last 20 entries per user — prevents unbounded growth
       ...userSemanticEntries.slice(0, 19),
     ];
     semanticCache.set(userId, updatedEntries);
@@ -175,27 +174,27 @@ export async function POST(request) {
     return NextResponse.json({
       results,
       meta: {
-        cacheHit:           false,
-        cacheLayer:         0,
+        cacheHit:             false,
+        cacheLayer:           0,
         embeddingCacheHit,
         embeddingLatency,
         dbLatency,
         rankLatency,
         searchLatency,
         totalCandidates,
-        embeddedCandidates: totalCandidates,
-        embeddingCoverage:  100,
-        topScore:           Math.round(topScore * 1000) / 1000,
-        avgScore:           Math.round(avgScore * 1000) / 1000,
-        aboveThresholdCount: aboveThreshold.length,
-        similarityThreshold: SIMILARITY_THRESHOLD,
-        zeroResults:        aboveThreshold.length === 0,
-        keywordMatchCount:  keywordMatches.length,
-        semanticOnlyCount:  semanticOnlyResults.length,
-        semanticLiftPct:    aboveThreshold.length > 0
+        embeddedCandidates:   totalCandidates,
+        embeddingCoverage:    100,
+        topScore:             Math.round(topScore * 1000) / 1000,
+        avgScore:             Math.round(avgScore * 1000) / 1000,
+        aboveThresholdCount:  aboveThreshold.length,
+        similarityThreshold:  SIMILARITY_THRESHOLD,
+        zeroResults:          aboveThreshold.length === 0,
+        keywordMatchCount:    keywordMatches.length,
+        semanticOnlyCount:    semanticOnlyResults.length,
+        semanticLiftPct:      aboveThreshold.length > 0
           ? Math.round((semanticOnlyResults.length / aboveThreshold.length) * 100)
           : 0,
-        queryWordCount:     queryTerms.length,
+        queryWordCount:       queryTerms.length,
         cacheStats: {
           embedding: embeddingCache.stats(),
           semantic:  semanticCache.stats(),

@@ -1,5 +1,5 @@
 // Shared middleware for Next.js API routes
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { LRUCache } from "@/lib/cache";
 
 // In-process session cache — avoids a DB round-trip on every API call
@@ -19,30 +19,29 @@ export async function getUserIdFromRequest(request) {
   const cached = sessionCache.get(accessToken);
   if (cached) {
     const ms = (performance.now() - t0).toFixed(2);
-    // Attach timing to request so route handlers can forward it
     request._authTiming = `auth-cache;dur=${ms};desc="token validation (cache)"`;
     return cached;
   }
 
   // Cache miss — hit the DB
-  const [session] = await sql`
-    SELECT user_id, access_token_expires_at
-    FROM sessions
-    WHERE access_token = ${accessToken}
-      AND access_token_expires_at > ${Date.now()}
-    LIMIT 1
-  `;
+  const session = await prisma.session.findFirst({
+    where: {
+      accessToken,
+      accessTokenExpiresAt: { gt: BigInt(Date.now()) },
+    },
+    select: { userId: true, accessTokenExpiresAt: true },
+  });
 
   const ms = (performance.now() - t0).toFixed(2);
   request._authTiming = `auth-db;dur=${ms};desc="token validation (db)"`;
 
-  if (!session?.user_id) return null;
+  if (!session?.userId) return null;
 
   // Store in cache for subsequent requests
-  const remainingTtl = session.access_token_expires_at - Date.now() - 60_000;
+  const remainingTtl = Number(session.accessTokenExpiresAt) - Date.now() - 60_000;
   if (remainingTtl > 0) {
-    sessionCache.set(accessToken, session.user_id);
+    sessionCache.set(accessToken, session.userId);
   }
 
-  return session.user_id;
+  return session.userId;
 }

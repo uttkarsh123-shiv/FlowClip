@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { generateToken, validateEmail } from "@/lib/auth-helpers";
 
 const RESET_TOKEN_TTL = 60 * 60 * 1000; // 1 hour
@@ -14,29 +14,32 @@ export async function POST(request) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const [user] = await sql`
-      SELECT id, name FROM users
-      WHERE email = ${normalizedEmail}
-      LIMIT 1
-    `;
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, name: true },
+    });
 
     if (user) {
       // Delete any existing unused tokens for this user
-      await sql`
-        DELETE FROM password_reset_tokens
-        WHERE user_id = ${user.id}
-        AND used_at IS NULL
-      `;
+      await prisma.passwordResetToken.deleteMany({
+        where: {
+          userId: user.id,
+          usedAt: null,
+        },
+      });
 
-      const token = generateToken();
+      const token     = generateToken();
       const expiresAt = Date.now() + RESET_TOKEN_TTL;
 
-      await sql`
-        INSERT INTO password_reset_tokens (user_id, token, expires_at)
-        VALUES (${user.id}, ${token}, ${expiresAt})
-      `;
+      await prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          token,
+          expiresAt: BigInt(expiresAt),
+        },
+      });
 
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      const appUrl   = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
       const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
       // Log the reset link to server console — check your server logs to get the link

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import {
   hashPassword,
   generateToken,
@@ -28,14 +28,12 @@ export async function POST(request) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // 2. Check if email already exists
-    // Raw SQL — SELECT with WHERE clause
-    const existing = await sql`
-      SELECT id FROM users
-      WHERE email = ${normalizedEmail}
-      LIMIT 1
-    `;
+    const existing = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
 
-    if (existing.length > 0) {
+    if (existing) {
       return NextResponse.json(
         { error: "Email already registered" },
         { status: 409 }
@@ -46,12 +44,14 @@ export async function POST(request) {
     const passwordHash = await hashPassword(password);
 
     // 4. Insert new user
-    // RETURNING gives us back the inserted row
-    const [user] = await sql`
-      INSERT INTO users (email, password_hash, name)
-      VALUES (${normalizedEmail}, ${passwordHash}, ${name?.trim() || null})
-      RETURNING id
-    `;
+    const user = await prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash,
+        name: name?.trim() || null,
+      },
+      select: { id: true },
+    });
 
     // 5. Generate tokens
     const accessToken  = generateToken();
@@ -61,25 +61,17 @@ export async function POST(request) {
     const refreshTokenExpiresAt = now + REFRESH_TOKEN_TTL;
 
     // 6. Create session
-    await sql`
-      INSERT INTO sessions (
-        user_id,
-        access_token,
-        refresh_token,
-        access_token_expires_at,
-        refresh_token_expires_at
-      ) VALUES (
-        ${user.id},
-        ${accessToken},
-        ${refreshToken},
-        ${accessTokenExpiresAt},
-        ${refreshTokenExpiresAt}
-      )
-    `;
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt:  BigInt(accessTokenExpiresAt),
+        refreshTokenExpiresAt: BigInt(refreshTokenExpiresAt),
+      },
+    });
 
     // 7. Return access token + set refresh token as HTTP-only cookie
-    // Also include refreshToken in response body for extension (can't read cookies)
-    // Include user profile so the client can cache it without a separate /me call
     const response = NextResponse.json({
       accessToken,
       accessTokenExpiresAt,

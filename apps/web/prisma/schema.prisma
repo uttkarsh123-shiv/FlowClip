@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash")
+  name         String?   @db.VarChar(100)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  sessions            Session[]
+  items               Item[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([email], name: "users_email_idx")
+  @@map("users")
+}
+
+model Session {
+  id                    String   @id @default(uuid())
+  userId                String   @map("user_id")
+  accessToken           String   @unique @map("access_token")
+  refreshToken          String   @unique @map("refresh_token")
+  accessTokenExpiresAt  BigInt   @map("access_token_expires_at")
+  refreshTokenExpiresAt BigInt   @map("refresh_token_expires_at")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accessToken], name: "sessions_access_token_idx")
+  @@index([refreshToken], name: "sessions_refresh_token_idx")
+  @@index([userId], name: "sessions_user_id_idx")
+  @@map("sessions")
+}
+
+model Item {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   @db.VarChar(10)
+  content   String
+  url       String?
+  imageUrl  String?  @map("image_url")
+  embedding Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "items_user_id_idx")
+  @@index([userId, type], name: "items_user_id_type_idx")
+  @@index([userId, createdAt], name: "items_user_id_created_at_idx")
+  @@map("items")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  expiresAt BigInt    @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}

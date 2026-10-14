@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import {
   verifyPassword,
   generateToken,
@@ -24,17 +24,13 @@ export async function POST(request) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 2. Find user by email
-    // Raw SQL — indexed lookup on users.email
-    const [user] = await sql`
-      SELECT id, email, password_hash, name
-      FROM users
-      WHERE email = ${normalizedEmail}
-      LIMIT 1
-    `;
+    // 2. Find user by email — indexed lookup
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, email: true, passwordHash: true, name: true },
+    });
 
-    // 3. Verify password — same error message whether user exists or not
-    //    prevents user enumeration attacks
+    // 3. Verify password — same error whether user exists or not (prevents enumeration)
     if (!user) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -42,7 +38,7 @@ export async function POST(request) {
       );
     }
 
-    const valid = await verifyPassword(password, user.password_hash);
+    const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -57,34 +53,24 @@ export async function POST(request) {
     const accessTokenExpiresAt  = now + ACCESS_TOKEN_TTL;
     const refreshTokenExpiresAt = now + REFRESH_TOKEN_TTL;
 
-    // 5. Clean up old sessions for this user, then create new one
-    // Prevents unbounded session accumulation per user
-    await sql`
-      DELETE FROM sessions
-      WHERE user_id = ${user.id}
-      AND refresh_token_expires_at < ${Date.now()}
-    `;
+    // 5. Clean up expired sessions for this user, then create new one
+    await prisma.session.deleteMany({
+      where: {
+        userId: user.id,
+        refreshTokenExpiresAt: { lt: BigInt(Date.now()) },
+      },
+    });
 
-    // Create new session
-    await sql`
-      INSERT INTO sessions (
-        user_id,
-        access_token,
-        refresh_token,
-        access_token_expires_at,
-        refresh_token_expires_at
-      ) VALUES (
-        ${user.id},
-        ${accessToken},
-        ${refreshToken},
-        ${accessTokenExpiresAt},
-        ${refreshTokenExpiresAt}
-      )
-    `;
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt:  BigInt(accessTokenExpiresAt),
+        refreshTokenExpiresAt: BigInt(refreshTokenExpiresAt),
+      },
+    });
 
-    // Return access token + set refresh token as HTTP-only cookie
-    // Also include refreshToken in response body for extension (can't read cookies)
-    // Include user profile so the client can cache it without a separate /me call
     const response = NextResponse.json({
       accessToken,
       accessTokenExpiresAt,

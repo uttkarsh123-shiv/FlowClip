@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { invalidateUserCache } from "@/lib/cache";
 
@@ -15,14 +15,11 @@ export async function DELETE(request, { params }) {
 
     // Delete only if the clip belongs to the requesting user
     // Prevents users from deleting other users' clips
-    const [deleted] = await sql`
-      DELETE FROM items
-      WHERE id = ${id}
-        AND user_id = ${userId}
-      RETURNING id
-    `;
+    const deleted = await prisma.item.deleteMany({
+      where: { id, userId },
+    });
 
-    if (!deleted) {
+    if (deleted.count === 0) {
       return NextResponse.json({ error: "Clip not found" }, { status: 404 });
     }
 

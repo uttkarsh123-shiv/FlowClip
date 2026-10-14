@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { hashPassword, validatePassword } from "@/lib/auth-helpers";
 
 export async function POST(request) {
@@ -18,31 +18,39 @@ export async function POST(request) {
     }
 
     // Look up token — must be unused and not expired
-    const [resetToken] = await sql`
-      SELECT id, user_id, expires_at, used_at
-      FROM password_reset_tokens
-      WHERE token = ${token}
-      LIMIT 1
-    `;
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token },
+      select: { id: true, userId: true, expiresAt: true, usedAt: true },
+    });
 
     if (!resetToken) {
       return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
     }
 
-    if (resetToken.used_at !== null) {
+    if (resetToken.usedAt !== null) {
       return NextResponse.json({ error: "This reset link has already been used" }, { status: 400 });
     }
 
-    if (Date.now() > resetToken.expires_at) {
+    if (Date.now() > Number(resetToken.expiresAt)) {
       return NextResponse.json({ error: "This reset link has expired. Please request a new one." }, { status: 400 });
     }
 
     const passwordHash = await hashPassword(newPassword);
 
-    // Update password, mark token as used, and revoke all active sessions atomically
-    await sql`UPDATE users SET password_hash = ${passwordHash} WHERE id = ${resetToken.user_id}`;
-    await sql`UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ${resetToken.id}`;
-    await sql`DELETE FROM sessions WHERE user_id = ${resetToken.user_id}`;
+    // Update password, mark token as used, and revoke all active sessions
+    await prisma.user.update({
+      where: { id: resetToken.userId },
+      data:  { passwordHash },
+    });
+
+    await prisma.passwordResetToken.update({
+      where: { id: resetToken.id },
+      data:  { usedAt: new Date() },
+    });
+
+    await prisma.session.deleteMany({
+      where: { userId: resetToken.userId },
+    });
 
     return NextResponse.json({ ok: true, message: "Password updated. Please sign in with your new password." });
   } catch (e) {

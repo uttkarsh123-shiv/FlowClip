@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 
 export async function GET(request) {
   try {
@@ -11,24 +11,27 @@ export async function GET(request) {
 
     const accessToken = authHeader.slice(7);
 
-    // 2. Find session + user in one JOIN query
-    const [result] = await sql`
-      SELECT u.id, u.email, u.name
-      FROM sessions s
-      JOIN users u ON u.id = s.user_id
-      WHERE s.access_token = ${accessToken}
-        AND s.access_token_expires_at > ${Date.now()}
-      LIMIT 1
-    `;
+    // 2. Find session + user in one query using relation
+    const session = await prisma.session.findFirst({
+      where: {
+        accessToken,
+        accessTokenExpiresAt: { gt: BigInt(Date.now()) },
+      },
+      select: {
+        user: {
+          select: { id: true, email: true, name: true },
+        },
+      },
+    });
 
-    if (!result) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     return NextResponse.json({
-      _id:   result.id,
-      email: result.email,
-      name:  result.name,
+      _id:   session.user.id,
+      email: session.user.email,
+      name:  session.user.name,
     });
   } catch (e) {
     console.error("[me]", e);

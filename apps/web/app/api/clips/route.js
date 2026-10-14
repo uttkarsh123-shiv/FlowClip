@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { getUserIdFromRequest } from "@/lib/api-middleware";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import { getEmbedding } from "@/lib/embeddings";
@@ -20,26 +20,19 @@ export async function GET(request) {
     const pageSize = Math.min(parseInt(searchParams.get("pageSize") ?? "20"), 50);
     const cursor   = searchParams.get("cursor");
 
-    const clips = cursor
-      ? await sql`
-          SELECT id, type, content, url, image_url, created_at
-          FROM items
-          WHERE user_id = ${userId}
-            AND created_at < ${new Date(cursor)}
-          ORDER BY created_at DESC
-          LIMIT ${pageSize + 1}
-        `
-      : await sql`
-          SELECT id, type, content, url, image_url, created_at
-          FROM items
-          WHERE user_id = ${userId}
-          ORDER BY created_at DESC
-          LIMIT ${pageSize + 1}
-        `;
+    const clips = await prisma.item.findMany({
+      where: {
+        userId,
+        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: pageSize + 1,
+      select: { id: true, type: true, content: true, url: true, imageUrl: true, createdAt: true },
+    });
 
     const hasMore    = clips.length > pageSize;
     const page       = hasMore ? clips.slice(0, pageSize) : clips;
-    const nextCursor = hasMore ? page[page.length - 1].created_at.toISOString() : null;
+    const nextCursor = hasMore ? page[page.length - 1].createdAt.toISOString() : null;
 
     const res = NextResponse.json({ clips: page, nextCursor, hasMore });
     if (request._authTiming) res.headers.set("Server-Timing", request._authTiming);
@@ -80,21 +73,27 @@ export async function POST(request) {
       ? "image"
       : /^https?:\/\//i.test(sanitizedContent) ? "link" : "text";
 
-    const [clip] = await sql`
-      INSERT INTO items (user_id, type, content, url, image_url)
-      VALUES (${userId}, ${resolvedType}, ${sanitizedContent}, ${sanitizedUrl}, ${imageUrl ?? null})
-      RETURNING id, type, content, url, image_url, created_at
-    `;
+    const clip = await prisma.item.create({
+      data: {
+        userId,
+        type:     resolvedType,
+        content:  sanitizedContent,
+        url:      sanitizedUrl,
+        imageUrl: imageUrl ?? null,
+      },
+      select: { id: true, type: true, content: true, url: true, imageUrl: true, createdAt: true },
+    });
 
     // Generate embedding for text/link clips asynchronously
     // Don't block the response — fire and forget
     if (resolvedType !== "image") {
       getEmbedding(sanitizedContent)
-        .then((embedding) => sql`
-          UPDATE items
-          SET embedding = ${JSON.stringify(embedding)}
-          WHERE id = ${clip.id}
-        `)
+        .then((embedding) =>
+          prisma.item.update({
+            where: { id: clip.id },
+            data:  { embedding },
+          })
+        )
         .catch((e) => console.error("[embedding generation failed]", e));
     }
 

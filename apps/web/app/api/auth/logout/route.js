@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { sql } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { clearRefreshTokenCookie } from "@/lib/auth-helpers";
 
 export async function POST(request) {
@@ -9,12 +9,10 @@ export async function POST(request) {
     const refreshToken = cookieStore.get("refreshToken")?.value;
 
     // Delete session from DB if refresh token exists
-    // Even if token is already expired, clean it up
     if (refreshToken) {
-      await sql`
-        DELETE FROM sessions
-        WHERE refresh_token = ${refreshToken}
-      `;
+      await prisma.session.deleteMany({
+        where: { refreshToken },
+      });
     }
 
     // Also handle access token revocation from request body
@@ -22,10 +20,9 @@ export async function POST(request) {
     try {
       const { accessToken } = await request.json();
       if (accessToken) {
-        await sql`
-          DELETE FROM sessions
-          WHERE access_token = ${accessToken}
-        `;
+        await prisma.session.deleteMany({
+          where: { accessToken },
+        });
       }
     } catch {
       // body might be empty — that's fine
