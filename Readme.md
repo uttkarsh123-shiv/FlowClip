@@ -153,7 +153,7 @@ Runs as a background service worker. Listens for text selection, copy events, an
 |---|---|
 | Web app | Next.js 16, React 19, Tailwind CSS v4 |
 | Database | PostgreSQL on [Neon](https://neon.tech) (serverless, ap-southeast-1) |
-| ORM | Drizzle ORM |
+| ORM | Prisma ORM (with `@prisma/adapter-pg` for direct PG connections) |
 | Auth | Custom token auth — bcryptjs (cost 10) |
 | Semantic search | Google Gemini `text-embedding-004` + cosine similarity |
 | Real-time | Server-Sent Events |
@@ -167,24 +167,66 @@ Runs as a background service worker. Listens for text selection, copy events, an
 
 ## Metrics
 
-| What | Measured value |
-|---|---|
-| Login TTFB | 1.44s → 1.3s (bcrypt floor on t2.micro) |
-| `/api/auth/me` after login | eliminated — 593ms saved per login |
-| Token validation (DB) | ~50-100ms per request |
-| Token validation (cache) | <1ms per request (Server-Timing verified) |
-| Dashboard clips visible | ~2.9s waterfall → ~1s (parallel + cache) |
-| Return visit render | instant — stale-while-revalidate from memory |
-| Lighthouse Performance | 98 |
-| Lighthouse Best Practices | 100 |
-| LCP improvement from HTTP/2 | 1,220ms (Lighthouse audit) |
-| Docker build (cold) | ~5-6 min |
-| Docker build (warm cache) | ~2-3 min |
-| Docker image size | ~1GB → ~150MB (multi-stage build) |
+> Numbers measured on a `t2.micro` EC2 instance (1 vCPU, 1 GB RAM). The hard floors are hardware — the wins are engineering.
+
+<br/>
+
+### ⚡ Speed
+
+| What | Before | After | Delta |
+|---|---|---|---|
+| Dashboard clips visible | ~2.9s waterfall | ~1s | **−1.9s** via parallel fetches + memory cache |
+| Return visit render | ~1s+ | **instant** | stale-while-revalidate from in-memory cache |
+| `/api/auth/me` after login | 593ms | **eliminated** | user returned directly in login response |
+| Login TTFB | 1.44s | **1.3s** | bcrypt cost-10 floor on t2.micro — expected |
+| LCP improvement from HTTP/2 | — | **−1,220ms** | Lighthouse audit, multiplexed asset delivery |
+
+<br/>
+
+### 🔒 Auth & Token Pipeline
+
+| What | Measured value | Why it matters |
+|---|---|---|
+| Token validation (DB hit) | ~50–100ms | baseline, cold path |
+| Token validation (LRU cache) | **< 1ms** | in-process cache, 14 min TTL, verified via `Server-Timing` |
+| Parallel refresh races prevented | ✅ | single `_refreshPromise` guard — one `/api/auth/refresh` call, all callers await it |
+
+<br/>
+
+### 🏗️ Build & Deploy
+
+| What | Measured value | Condition |
+|---|---|---|
+| Docker image size | ~1 GB → **~150 MB** | multi-stage build |
+| Docker build (cold) | ~5–6 min | no layer cache |
+| Docker build (warm) | ~2–3 min | layer cache hit |
+| Deploy end-to-end | **~5–8 min** | `git push main` → live, zero manual steps |
+
+<br/>
+
+### 📊 Lighthouse (Dashboard)
+
+| Metric | Score | Condition |
+|---|---|---|
+| Performance | **98** | measured on deployed production app |
+| Accessibility | **89** | — |
+| Best Practices | **100** | — |
+| SEO | **100** | — |
+
+<br/>
+
+### 🔍 Semantic Search
+
+| What | Measured value | Context |
+|---|---|---|
+| Embedding latency (Gemini) | ~210ms | fire-and-forget, doesn't block `POST /api/clips` |
+| Search latency (end-to-end) | ~248ms | includes embedding + cosine similarity scan |
+| Semantic lift | **75%** | results that would be missed by keyword search alone |
+| Similarity threshold | 0.6 | cosine distance cutoff — tuned to reduce noise |
 
 ---
 
-
+## CI/CD
 
 Every push to `main` automatically builds and deploys:
 
@@ -216,6 +258,22 @@ Browser → https://flowclip.duckdns.org → Nginx (HTTP/2, port 443) → Docker
 
 ---
 
+## Monorepo structure
+
+```
+FlowClip/
+├── apps/
+│   ├── web/          # Next.js 16 app (API + dashboard + landing page)
+│   └── extension/    # Chrome Manifest V3 extension
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+├── .env.docker.example
+└── package.json
+```
+
+---
+
 <details>
 <summary><strong>API routes</strong></summary>
 <br/>
@@ -243,23 +301,57 @@ Browser → https://flowclip.duckdns.org → Nginx (HTTP/2, port 443) → Docker
 
 ## Database schema
 
+```prisma
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+
+  sessions            Session[]
+  items               Item[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model Session {
+  id                    String   @id @default(uuid())
+  userId                String
+  accessToken           String   @unique
+  refreshToken          String   @unique
+  accessTokenExpiresAt  BigInt
+  refreshTokenExpiresAt BigInt
+  createdAt             DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Item {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // "text" | "link" | "image"
+  content   String
+  url       String?
+  imageUrl  String?
+  embedding Json?    // Gemini text-embedding-004 vector
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Indexes: (userId), (userId, type), (userId, createdAt) — cursor pagination
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt BigInt
+  usedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 ```
-users
-  id, email, password_hash, name, created_at
 
-sessions
-  id, user_id → users, access_token, refresh_token,
-  access_token_expires_at, refresh_token_expires_at, created_at
-
-password_reset_tokens
-  id, user_id → users, token, expires_at, used_at, created_at
-
-items (clips)
-  id, user_id → users, type (text|link|image),
-  content, url, image_url, embedding (jsonb), created_at
-```
-
-All foreign keys cascade on delete. Indexes on every lookup column.
+All foreign keys cascade on delete.
 
 ---
 
