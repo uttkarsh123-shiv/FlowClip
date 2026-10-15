@@ -14,19 +14,20 @@ export async function GET(request) {
   }
 
   // Validate token against DB
-  const { sql } = await import("@/lib/db");
-  const [session] = await sql`
-    SELECT user_id FROM sessions
-    WHERE access_token = ${token}
-      AND access_token_expires_at > ${Date.now()}
-    LIMIT 1
-  `;
+  const { prisma } = await import("@/lib/db");
+  const session = await prisma.session.findFirst({
+    where: {
+      accessToken: token,
+      accessTokenExpiresAt: { gt: BigInt(Date.now()) },
+    },
+    select: { userId: true },
+  });
 
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const userId = session.user_id;
+  const userId = session.userId;
 
   let cleanup;
 
