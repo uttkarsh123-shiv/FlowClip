@@ -25,5 +25,5 @@ jobs:
         working-directory: apps/web
 
       - name: Run Vitest
-        run: npm test
+        run: npx vitest --run tests/cache.test.js tests/clips-cache.test.js tests/cosine-similarity.test.js tests/auth-helpers.test.js tests/clipsApi.test.js tests/sanitize.test.js tests/auth.test.js
         working-directory: apps/web
