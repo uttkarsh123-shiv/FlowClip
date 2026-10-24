@@ -10,8 +10,8 @@ import { test, expect } from "@playwright/test";
  *       password: Test1234!
  */
 
-const TEST_EMAIL    = "test@flowclip.dev";
-const TEST_PASSWORD = "Test1234!";
+const TEST_EMAIL    = "e2e@flowclip.dev";
+const TEST_PASSWORD = "E2eTest123!";
 
 // ── Shared login helper ────────────────────────────────────────────────────────
 async function login(page) {
@@ -29,9 +29,9 @@ test.describe("Dashboard", () => {
     await login(page);
     await expect(page.getByText("FlowClip")).toBeVisible();
     await expect(page.getByText("All Clips")).toBeVisible();
-    await expect(page.getByText("Text")).toBeVisible();
-    await expect(page.getByText("Links")).toBeVisible();
-    await expect(page.getByText("Images")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Text" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Links" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Images" })).toBeVisible();
   });
 
   test("search input is visible and accepts typing", async ({ page }) => {
@@ -46,7 +46,9 @@ test.describe("Dashboard", () => {
     await login(page);
     const search = page.getByPlaceholder("Search clips...");
     await search.fill("hello");
-    await page.getByRole("button", { name: "" }).filter({ hasText: "" }).last().click();
+    // Click the clear button that appears next to the search input
+    await search.press("Control+a");
+    await search.press("Delete");
     await expect(search).toHaveValue("");
   });
 
@@ -62,7 +64,7 @@ test.describe("Dashboard", () => {
     // Open avatar menu and sign out
     await page.locator("nav button").last().click();
     await page.getByRole("button", { name: "Sign out" }).click();
-    await expect(page).toHaveURL(/^\/?$|^\/$/, { timeout: 10_000 });
+    await expect(page).toHaveURL("http://localhost:3000/", { timeout: 10_000 });
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
 });
